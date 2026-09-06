@@ -1,0 +1,100 @@
+// ═══════════════════════════════════════════════════════════════════════
+// Proof of Reserves — proves `assets >= liabilities` without revealing amounts
+// ═══════════════════════════════════════════════════════════════════════
+//
+// PUBLIC (ledger state — everyone can see):
+//   solvent             Boolean    — assets >= liabilities (the verdict)
+//   liabilitiesRoot     Bytes<32>  — commitment to the Merkle *sum* tree
+//   attestationEpoch    Uint<64>   — increments on every successful attestation
+//   lastAttestationTime Uint<64>   — prover-supplied time, bound to block time
+//   custodianKey        Bytes<32>  — hash of the custodian secret (their on-chain identity)
+//
+// PRIVATE (witness — never leaves the prover's machine):
+//   custodianSecret()   Bytes<32>  — gates `attest` to the custodian
+//   totalAssets()       Uint<64>   — the real asset total (never disclosed)
+//   totalLiabilities()  Uint<64>   — the real liability total (never disclosed)
+//   topLeft()/topRight() MerkleSumNode — the two children of the tree root
+//
+// The core trick (see docs/MIDNIGHT_NOTES.md and README):
+//   The custodian builds a Merkle *sum* tree off-chain (leaf = commitment to a
+//   customer balance; internal node binds children hashes AND sums). The circuit
+//   checks only the TOP of that tree with ONE hash:
+//       liabilitiesRoot == persistentHash([topLeft, topRight])
+//       totalLiabilities == topLeft.sum + topRight.sum   (checked narrowing)
+//       totalAssets      >= totalLiabilities
+//   Solvency is enforced by the circuit. Completeness of the liability list is
+//   enforced by each customer verifying their own inclusion proof against
+//   liabilitiesRoot in their own browser — a custodian who understates
+//   liabilities must either exclude a customer (proof fails) or lie about a sum
+//   (parent sums break; the path cannot reproduce the root).
+//
+// ═══════════════════════════════════════════════════════════════════════
+
+pragma language_version 0.23;
+import CompactStandardLibrary;
+
+// A node in the Merkle sum tree: a commitment digest + the total sum of the
+// subtree it roots. The circuit hashes two of these to reproduce the root.
+export struct MerkleSumNode {
+  digest: Bytes<32>;
+  sum: Uint<64>;
+}
+
+export ledger solvent: Boolean;
+export ledger liabilitiesRoot: Bytes<32>;
+export ledger attestationEpoch: Uint<64>;
+export ledger lastAttestationTime: Uint<64>;
+export ledger custodianKey: Bytes<32>;
+
+witness custodianSecret(): Bytes<32>;
+witness totalAssets(): Uint<64>;
+witness totalLiabilities(): Uint<64>;
+witness topLeft(): MerkleSumNode;
+witness topRight(): MerkleSumNode;
+
+// DApp-specific public key for the custodian (official auth pattern: hash-based
+// key, domain-separated — see docs/MIDNIGHT_NOTES.md §4). The secret never
+// leaves the prover; only this hash is stored on-chain.
+circuit ownerKey(sk: Bytes<32>): Bytes<32> {
+  return persistentHash<Vector<2, Bytes<32>>>([pad(32, "por:owner:"), sk]);
+}
+
+constructor() {
+  solvent = disclose(false);
+  liabilitiesRoot = disclose(default<Bytes<32>>);
+  attestationEpoch = disclose(0 as Uint<64>);
+  lastAttestationTime = disclose(0 as Uint<64>);
+  custodianKey = disclose(ownerKey(custodianSecret()));
+}
+
+// The core circuit. Proves solvency + root consistency; discloses only the
+// boolean verdict, the commitment root, and freshness metadata. Amounts stay
+// in the witness.
+export circuit attest(now: Uint<64>): [] {
+  // Only the custodian (prover of the registered secret) may attest.
+  assert(disclose(ownerKey(custodianSecret()) == custodianKey), "Not authorized: caller is not the custodian");
+
+  const a = totalAssets();
+  const l = totalLiabilities();
+  const left = topLeft();
+  const right = topRight();
+
+  // 1) Liabilities equal the sum committed at the top of the tree. The cast
+  //    `as Uint<64>` is a checked narrowing: a sum exceeding 2^64-1 aborts the
+  //    circuit (overflow rejection is built into the type system).
+  assert(l == (left.sum + right.sum) as Uint<64>, "Liabilities do not match the committed tree total");
+
+  // 2) Solvency — the whole point. Both numbers stay private.
+  assert(a >= l, "Insolvent — refusing to attest");
+
+  // 3) Freshness: the attested time must not be in the future (bound to block
+  //    time). The exact clock value is prover-supplied and disclosed — labelled
+  //    "attested" in the UI per the honesty rule, not proven.
+  assert(blockTimeGte(disclose(now)), "Attestation time is in the future");
+
+  // 4) Bind the two top children into ONE root commitment.
+  liabilitiesRoot = disclose(persistentHash<Vector<2, MerkleSumNode>>([left, right]));
+  solvent = disclose(true);
+  attestationEpoch = disclose((attestationEpoch + 1) as Uint<64>);
+  lastAttestationTime = disclose(now);
+}

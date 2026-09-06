@@ -1,0 +1,8 @@
+{
+  "version": 3,
+  "file": "index.js",
+  "sourceRoot": "../../",
+  "sources": ["contracts/proof-of-reserves.compact", "compiler/standard-library.compact"],
+  "names": [],
+  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;EA6DA;;;;;;;;;;;;;;;;;;;;;;;;;MAWA,AAAA,MA2BC;;;;;cA3BqB,KAAa;;;;;;;;;;;;;;;;;;yCAAb,KAAa;;;;;;;mEAAb,KAAa;;;OA2BlC;;;;GAhCA;EAND;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;IAnBA;;;;;;;;;yEAA+B;IAC/B;;;;;;;;;yEAAyC;IACzC;;;;;;;;;yEAAyC;IACzC;;;;;;;;;yEAA4C;IAC5C;;;;;;;;;yEAAsC;IAgBpC;;;;;;;;;yEAAO;UACP,KAAe;IAAf;;;;;;;2HAAA,KAAe;;yEAAA;UACf,KAAgB;IAAhB;;;;;;;2HAAA,KAAgB;;yEAAA;UAChB,KAAmB;IAAnB;;;;;;;2HAAA,KAAmB;;yEAAA;UACnB,KAAY;;IAAZ;;;;;;;2HAAA,KAAY;;yEAAA;;;;;;;GACb;ECkND,AAAA,0CAA2B;mCAClB;;;;;;;;;;;0JAAyB;;;;;;EAGlC,AAAA,2CAA4B;2DACN;;EA1RtB,AAAA,kBAAA;oEAAA;;;EAAA,AAAA,kBAAA;oEAAA;;;EDgDA,AAAA,kBAAqC;;0DAArC,eAAqC;;;;;;;;;;;;;;GAAA;EACrC,AAAA,cAAgC;;0DAAhC,WAAgC;;;;;;;;;;;;;;GAAA;EAChC,AAAA,mBAAqC;;0DAArC,gBAAqC;;;;;;;;;;;;;;GAAA;EACrC,AAAA,UAAiC;;0DAAjC,OAAiC;;;;;;;;;;;;;;GAAA;EACjC,AAAA,WAAkC;;0DAAlC,QAAkC;;;;;;;;;;;;;;GAAA;EAKlC,AAAA,WAEC,CAFgB,IAAa;;mCACwC,IAAE;GACvE;EAaD,AAAA,SA2BC,4BA3BqB,KAAa;;;kEAEc;;;;;;;;;;;uIAAY;;UAErD,GAAiB;UACjB,GAAsB;UACtB,MAAgB;UAChB,OAAkB;0CAKjB,GAAC;;;;;;6CAAK,MAAI,OAAO,OAAK;;4BAGtB,GAAC,IAAI,GAAC;;;iDAKgB,KAAG;;UAGhC,KAAe,2BAAsD,MAAI,EAAE,OAAK;IAAhF;;;;;;;2HAAA,KAAe;;yEAAA;IACf;;;;;;;;;yEAAO;UACP,KAAgB;;;;;6CAAa;;;;;;;;;;;kHAAgB;;;IAA7C;;;;;;;2HAAA,KAAgB;;yEAAA;IAChB;;;;;;;2HAA+B,KAAG;;yEAAf;;GACpB;;;;;;;;;;;;;;;;;;;;;;;;IAzDD;qCAAA;;;;;;;;;;;0GAA+B;KAAA;IAC/B;qCAAA;;;;;;;;;;;0GAAyC;KAAA;IACzC;qCAAA;;;;;;;;;;;0GAAyC;KAAA;IACzC;qCAAA;;;;;;;;;;;0GAA4C;KAAA;IAC5C;qCAAA;;;;;;;;;;;0GAAsC;KAAA;;;;;;;;;;;;;;;;"
+}
