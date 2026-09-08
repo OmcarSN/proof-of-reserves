@@ -144,6 +144,27 @@ export function clearConnection(): void {
   cachedConnection = null;
 }
 
+/**
+ * Resolve `p`, but fall back to `fallback` if it hasn't settled within `ms`.
+ *
+ * Lace lives in a Chrome MV3 service worker that the browser can put to sleep.
+ * After the user approves the connection, a follow-up wallet call
+ * (serviceUriConfig(), or a promise-style state()) occasionally never settles —
+ * which would freeze the whole connect on the Promise.all below and leave the UI
+ * stuck on "connecting" forever. Bounding each call with a safe fallback keeps
+ * the flow moving: the URIs fall back to our known endpoints (which the attest
+ * path uses directly anyway), and empty keys are re-derived from the shielded
+ * address later. A rejection is treated the same as a timeout.
+ */
+function withTimeout<T>(p: Promise<T>, ms: number, fallback: T): Promise<T> {
+  return new Promise<T>((resolve) => {
+    let done = false;
+    const settle = (v: T) => { if (!done) { done = true; clearTimeout(timer); resolve(v); } };
+    const timer = setTimeout(() => settle(fallback), ms);
+    Promise.resolve(p).then(settle, () => settle(fallback));
+  });
+}
+
 async function doConnectLace(): Promise<ConnectionInfo> {
   let connector = chosenConnector();
   if (!connector) {
@@ -177,14 +198,18 @@ async function doConnectLace(): Promise<ConnectionInfo> {
     throw new Error(`Wallet connection failed: ${msg}`);
   }
 
+  const fallbackUris: ServiceUriConfig = {
+    indexerUri: ENDPOINTS.indexer,
+    indexerWsUri: ENDPOINTS.indexerWS,
+    nodeUri: ENDPOINTS.node.replace(/^http/, 'ws'),
+    proverServerUri: ENDPOINTS.proofServer,
+  };
+  // serviceUriConfig() can hang on a sleeping wallet worker; time it out. The
+  // attest path builds its providers from ENDPOINTS directly, so these URIs are
+  // informational — the fallback is fully sufficient.
   const fetchUris = typeof connector.serviceUriConfig === 'function'
-    ? connector.serviceUriConfig()
-    : Promise.resolve({
-        indexerUri: ENDPOINTS.indexer,
-        indexerWsUri: ENDPOINTS.indexerWS,
-        nodeUri: ENDPOINTS.node.replace(/^http/, 'ws'),
-        proverServerUri: ENDPOINTS.proofServer,
-      });
+    ? withTimeout(connector.serviceUriConfig(), 5000, fallbackUris)
+    : Promise.resolve(fallbackUris);
 
   const [state, uris] = await Promise.all([
     extractWalletState(api),
@@ -271,7 +296,10 @@ export async function readWalletState(api: any): Promise<{ state: WalletState; r
     }
 
     if (stateResult && typeof stateResult.then === 'function') {
-      raw = await stateResult;
+      // Promise-style state(): bound it so a stalled wallet worker can't freeze
+      // the connect. On timeout we return null → an empty state; the shielded
+      // keys are then re-derived from the shielded address in callAttest.
+      raw = await withTimeout(stateResult as Promise<any>, 4000, null);
     } else if (stateResult && typeof stateResult.subscribe === 'function') {
       raw = await new Promise((resolve) => {
         let latest: any = null;
