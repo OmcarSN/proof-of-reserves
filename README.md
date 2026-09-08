@@ -149,7 +149,6 @@ CI runs this suite and a full frontend typecheck + browser build on every push �
 
 ## Links
 
-- **Demo video:** _TODO — add link_
 - **Project X (Twitter):** _TODO — add link_
 - **Live app:** _TODO — add Vercel URL_
 
