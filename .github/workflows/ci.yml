@@ -40,8 +40,15 @@ jobs:
         with:
           node-version: '22'
           cache: npm
-          cache-dependency-path: web/package-lock.json
-      - name: Install dependencies
+          cache-dependency-path: |
+            package-lock.json
+            web/package-lock.json
+      # The web app imports ../src/reserves.ts, whose bare @midnight-ntwrk/*
+      # imports resolve against the ROOT node_modules — so the browser build
+      # needs the root deps installed too, not just web/ deps.
+      - name: Install root dependencies
+        run: npm ci
+      - name: Install web dependencies
         run: npm ci
         working-directory: web
       - name: Typecheck
