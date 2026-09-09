@@ -150,7 +150,7 @@ CI runs this suite and a full frontend typecheck + browser build on every push â
 ## Links
 
 - **Live app:** https://proof-of-reserves-delta.vercel.app
-- **Project X (Twitter):** _TODO â€” add link_
+- **Project X (Twitter):** https://x.com/cocqodao
 
 ## License
 
