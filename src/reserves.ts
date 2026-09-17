@@ -312,19 +312,22 @@ export function friendlyError(err: any): string {
   const raw = describeErr(err);
   const low = raw.toLowerCase();
   if (low.includes('reject') || low.includes('denied') || (err && err.code === 4001)) {
-    return 'You dismissed the Lace popup. Click attest again and approve the request in the wallet.';
+    return 'You dismissed the wallet popup. Click attest again and approve the request in the wallet.';
   }
   if (low.includes('lock')) {
-    return 'Your Lace wallet is locked. Open the Lace extension, enter your password, then try again.';
+    return 'Your wallet is locked. Open your wallet extension, enter your password, then try again.';
   }
-  if (low.includes('insufficient') || low.includes('dust') || low.includes('balance')) {
+  if (low.includes('insufficient') || low.includes('dust') || (low.includes('balance') && !low.includes('balanceunsealed') && !low.includes('customer'))) {
     return 'Not enough tNIGHT / DUST to pay the fee. Fund this wallet on Preprod, register NIGHT for DUST, then retry.';
   }
-  if (low.includes('proof') && (low.includes('server') || low.includes('6300') || low.includes('fetch'))) {
+  if (low.includes('failed proof server response') || (low.includes('econnrefused') && low.includes('6300'))) {
     return `The local proof server isn't reachable. Start it, then retry:\n${PROOF_SERVER_DOCKER_CMD}`;
   }
-  if (low.includes('failed to fetch') || low.includes('networkerror') || low.includes('econnrefused')) {
-    return 'Network error reaching Midnight or the proof server. Check your connection and that the proof server is running.';
+  if (low.includes('assertion') || low.includes('assert')) {
+    return 'Smart contract assertion failed: Verify that your custodian secret matches the deployed contract owner and assets >= liabilities.';
+  }
+  if (low.includes('failed to fetch') || low.includes('networkerror')) {
+    return 'Network error reaching Midnight or the proof server. Check your connection.';
   }
   return raw;
 }
@@ -547,7 +550,7 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
   } catch { /* read is best-effort; default epoch 1 */ }
 
   // ── 8. Prove locally and submit. Balances flow ONLY through the witnesses. ──
-  reached = 'proving (proof server :6300)';
+  reached = 'generating proof';
   const liabilitiesRootHex = toHex(tree.root.digest);
   try {
     await (deployed as any).callTx.attest(nowSeconds);

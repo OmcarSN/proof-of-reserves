@@ -22,15 +22,23 @@ export const PROOF_SERVER_DOCKER_CMD =
  * blocked as mixed content and reads as "down" — run the app locally via
  * `npm run dev` for the full custodian flow.)
  */
-export async function isProofServerUp(timeoutMs = 2500): Promise<boolean> {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-  try {
-    await fetch(ENDPOINTS.proofServer, { mode: 'no-cors', signal: controller.signal });
-    return true;
-  } catch {
-    return false;
-  } finally {
-    clearTimeout(timer);
+export async function isProofServerUp(timeoutMs = 3000): Promise<boolean> {
+  const tryUrl = async (url: string) => {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      await fetch(url, { mode: 'no-cors', signal: controller.signal });
+      return true;
+    } catch {
+      return false;
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  if (await tryUrl(ENDPOINTS.proofServer)) return true;
+  if (ENDPOINTS.proofServer.includes('127.0.0.1')) {
+    return await tryUrl(ENDPOINTS.proofServer.replace('127.0.0.1', 'localhost'));
   }
+  return false;
 }
