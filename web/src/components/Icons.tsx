@@ -14,6 +14,36 @@ export function ShieldCheckIcon({ size = 20, className = '' }: IconProps) {
   );
 }
 
+export function ProofLogo({ size = 26, className = '', color = '#0F2C23' }: IconProps & { color?: string }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      className={className}
+      aria-hidden="true"
+    >
+      {/* Left Outer Half-Ring */}
+      <path
+        d="M 56.75 5 A 45 45 0 0 0 56.75 95 L 56.75 81.5 A 31.5 31.5 0 0 1 56.75 18.5 Z"
+        fill={color}
+      />
+      {/* Left Inner Half-Circle */}
+      <path
+        d="M 56.75 32 A 18 18 0 0 0 56.75 68 Z"
+        fill={color}
+      />
+      {/* Right Middle Half-Ring */}
+      <path
+        d="M 56.75 18.5 A 31.5 31.5 0 0 1 56.75 81.5 L 56.75 68 A 18 18 0 0 0 56.75 32 Z"
+        fill={color}
+      />
+    </svg>
+  );
+}
+
 export function LockIcon({ size = 16, className = '' }: IconProps) {
   return (
     <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">

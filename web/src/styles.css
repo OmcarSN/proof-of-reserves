@@ -223,11 +223,13 @@ code, .mono, .font-mono {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 36px;
-  height: 36px;
+  width: 38px;
+  height: 38px;
   border-radius: 10px;
-  background: #0F2C23;
-  color: #FFFFFF;
+  background: #DCEAC9;
+  border: 1px solid #C5D7B2;
+  color: #0F2C23;
+  flex-shrink: 0;
 }
 
 .app-brand-titles {
@@ -1813,6 +1815,12 @@ code, .mono, .font-mono {
   gap: var(--sp-3);
   font-size: var(--text-xs);
   color: var(--color-text-dim);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
 }
 
 .footer-brand {

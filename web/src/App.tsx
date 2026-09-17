@@ -7,7 +7,7 @@ import { StatusPanel } from './components/StatusPanel';
 import { VerifyPanel } from './components/VerifyPanel';
 import { JoinPanel } from './components/JoinPanel';
 import { ParticleBackground } from './components/ParticleBackground';
-import { ShieldCheckIcon, SparklesIcon, TreeIcon, WalletIcon, UsersIcon } from './components/Icons';
+import { ProofLogo, ShieldCheckIcon, SparklesIcon, TreeIcon, WalletIcon, UsersIcon } from './components/Icons';
 
 type Tab = 'status' | 'attest' | 'verify' | 'join';
 
@@ -61,7 +61,7 @@ export default function App() {
           <div className="app-header-left">
             <div className="app-brand" onClick={() => setActiveTab('status')} style={{ cursor: 'pointer' }}>
               <div className="app-logo-mark">
-                <ShieldCheckIcon size={20} className="text-teal" />
+                <ProofLogo size={24} color="#0F2C23" />
               </div>
               <div className="app-brand-titles">
                 <span className="app-logo">ProofReserves</span>
@@ -158,6 +158,7 @@ export default function App() {
       <footer className="app-footer">
         <div className="footer-inner">
           <div className="footer-left">
+            <ProofLogo size={18} color="#0F2C23" />
             <span className="footer-brand">ProofReserves</span>
             <span className="footer-sep">·</span>
             <span>Zero-Knowledge Cryptographic Solvency</span>
