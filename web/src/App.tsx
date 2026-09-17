@@ -1,9 +1,7 @@
 import { useState } from 'react';
-import { NETWORK_LABEL, CONTRACT_ADDRESS } from '@reserves';
 import { useToast } from './hooks/useToast';
 import { useWallet } from './hooks/useWallet';
 import { ToastContainer } from './components/Toast';
-import { TruncatedHash } from './components/TruncatedHash';
 import { AttestPanel } from './components/AttestPanel';
 import { StatusPanel } from './components/StatusPanel';
 import { VerifyPanel } from './components/VerifyPanel';
@@ -90,21 +88,6 @@ export default function App() {
           </div>
 
           <div className="app-header-right">
-            <span className="network-pill">
-              <span className="pulse-dot pulse-dot--green" />
-              {NETWORK_LABEL}
-            </span>
-
-            <div className="contract-meta-pill">
-              <span className="meta-label">Contract</span>
-              <TruncatedHash
-                hash={CONTRACT_ADDRESS}
-                prefixLen={6}
-                suffixLen={4}
-                label="Contract Address"
-              />
-            </div>
-
             {wallet ? (
               <button
                 type="button"
@@ -125,7 +108,7 @@ export default function App() {
                 onClick={handleConnect}
                 disabled={connecting}
               >
-                <span>{connecting ? 'Connecting…' : 'Connect Lace'}</span>
+                <span>{connecting ? 'Connecting…' : 'Connect Wallet'}</span>
                 <span className="btn-arrow">↗</span>
               </button>
             )}
