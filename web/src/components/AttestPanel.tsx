@@ -244,12 +244,18 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
             </div>
             <div className={`proving-stepper-item ${provingStep >= 3 ? 'is-active' : ''}`}>
               <span className="stepper-bullet">{provingStep > 3 ? '✓' : '3'}</span>
-              <span className="stepper-text">Executing ZK-SNARK Prover Circuit (:6300)</span>
+              <span className="stepper-text">Computing ZK-SNARK Proof in Docker (:6300) ~15s</span>
             </div>
             <div className={`proving-stepper-item ${provingStep >= 4 ? 'is-active' : ''}`}>
               <span className="stepper-bullet">4</span>
-              <span className="stepper-text">Broadcasting to Midnight Preprod Ledger</span>
+              <span className="stepper-text">Wallet Approval & On-Chain Broadcast</span>
             </div>
+          </div>
+
+          <div style={{ marginTop: 'var(--sp-4)', padding: '10px 16px', background: 'rgba(220, 234, 201, 0.45)', borderRadius: 10, border: '1px solid #C5D7B2', fontSize: '12px', color: '#0F2C23', textAlign: 'center', lineHeight: 1.5 }}>
+            ⏳ <strong>Proof server is crunching the ZK cryptographic proof (~15–20 seconds).</strong>
+            <br />
+            Please keep this tab in focus. <strong>Your 1AM Wallet prompt will appear automatically</strong> as soon as the proof finishes!
           </div>
 
           <div className="proving-reassurance">
