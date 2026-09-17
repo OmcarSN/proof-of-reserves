@@ -26,6 +26,13 @@ export default defineConfig({
         find: /^vite-plugin-node-polyfills\/shims\/(.*)/,
         replacement: path.join(shimsDir, '$1'),
       },
+      // Pin compact-js to web's copy so TypeId Symbol matches between CompiledContract and midnight-js-contracts.
+      {
+        find: '@midnight-ntwrk/compact-js',
+        replacement: fileURLToPath(
+          new URL('./node_modules/@midnight-ntwrk/compact-js', import.meta.url),
+        ),
+      },
       // Pin compact-runtime to web's copy for Vercel builds.
       {
         find: '@midnight-ntwrk/compact-runtime',
@@ -77,6 +84,7 @@ export default defineConfig({
   },
   optimizeDeps: {
     exclude: [
+      '@midnight-ntwrk/compact-js',
       '@midnight-ntwrk/compact-runtime',
       '@midnight-ntwrk/onchain-runtime-v3',
       '@midnight-ntwrk/ledger-v8',
