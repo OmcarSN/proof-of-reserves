@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   readReserves,
   verifyInclusion,
@@ -6,7 +6,7 @@ import {
   friendlyError,
   type CustomerProof,
 } from '@reserves';
-import { ShieldCheckIcon, TreeIcon, AlertTriangleIcon, CheckCircleIcon, RefreshCwIcon } from './Icons';
+import { ShieldCheckIcon, TreeIcon, AlertTriangleIcon, CheckCircleIcon, RefreshCwIcon, FileTextIcon, UploadIcon } from './Icons';
 
 type VerifyState =
   | { phase: 'idle' }
@@ -49,10 +49,66 @@ const SAMPLE_TAMPERED_PROOF: CustomerProof = {
 export function VerifyPanel() {
   const [jsonText, setJsonText] = useState('');
   const [state, setState] = useState<VerifyState>({ phase: 'idle' });
+  const [isDragging, setIsDragging] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const loadSampleProof = (proof: CustomerProof) => {
     setJsonText(JSON.stringify(proof, null, 2));
     setState({ phase: 'idle' });
+  };
+
+  const handleFileContent = (text: string) => {
+    try {
+      // Validate it's parseable JSON
+      JSON.parse(text.trim());
+      setJsonText(text.trim());
+      setState({ phase: 'idle' });
+    } catch {
+      setState({
+        phase: 'error',
+        message: 'The file does not contain valid JSON. Please drop a .json file with a valid CustomerProof.',
+      });
+    }
+  };
+
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+
+    const file = e.dataTransfer.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      if (text) handleFileContent(text);
+    };
+    reader.readAsText(file);
+  }, []);
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(true);
+  }, []);
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setIsDragging(false);
+  }, []);
+
+  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      if (text) handleFileContent(text);
+    };
+    reader.readAsText(file);
+    e.target.value = '';
   };
 
   const handleVerify = useCallback(async () => {
@@ -172,18 +228,45 @@ export function VerifyPanel() {
           </div>
 
           <div className="field">
-            <textarea
-              id="proof-json"
-              className="input input--mono proof-textarea"
-              value={jsonText}
-              onChange={(e) => setJsonText(e.target.value)}
-              placeholder={'{\n  "index": 0,\n  "balance": "1250",\n  "idHashHex": "...",\n  "saltHex": "...",\n  "path": [...]\n}'}
-              rows={11}
-              spellCheck={false}
-            />
-            <p className="field-hint">
-              Your balance and secret salt are verified locally in your browser. No data is transmitted.
-            </p>
+            <div
+              className={`drop-zone ${isDragging ? 'drop-zone--active' : ''}`}
+              onDrop={handleDrop}
+              onDragOver={handleDragOver}
+              onDragLeave={handleDragLeave}
+            >
+              {isDragging ? (
+                <div className="drop-zone-overlay">
+                  <UploadIcon size={28} className="text-teal" />
+                  <span>Drop your proof JSON file here</span>
+                </div>
+              ) : (
+                <textarea
+                  id="proof-json"
+                  className="input input--mono proof-textarea"
+                  value={jsonText}
+                  onChange={(e) => setJsonText(e.target.value)}
+                  placeholder={'{\n  "index": 0,\n  "balance": "1250",\n  "idHashHex": "...",\n  "saltHex": "...",\n  "path": [...]\n}'}
+                  rows={11}
+                  spellCheck={false}
+                />
+              )}
+            </div>
+            <div className="drop-zone-actions">
+              <label className="btn btn--ghost btn--sm csv-import-label" title="Browse for a proof JSON file">
+                <FileTextIcon size={14} />
+                <span>Browse File</span>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".json,.txt"
+                  onChange={handleFileSelect}
+                  style={{ display: 'none' }}
+                />
+              </label>
+              <span className="field-hint" style={{ margin: 0 }}>
+                Paste JSON, drag \u0026 drop a file, or browse. All verification is local.
+              </span>
+            </div>
           </div>
 
           <button
