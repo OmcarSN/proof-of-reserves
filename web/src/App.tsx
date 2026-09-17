@@ -95,11 +95,16 @@ export default function App() {
                 onClick={disconnect}
                 title={`${wallet.walletName} · ${wallet.address}\nClick to disconnect`}
               >
-                <WalletIcon size={14} />
-                <span className="font-mono">
-                  {wallet.address.slice(0, 6)}…{wallet.address.slice(-4)}
+                <span className="wallet-live-badge" aria-hidden="true">
+                  <span className="wallet-live-dot" />
+                  <span className="wallet-live-ping" />
                 </span>
-                <span className="wallet-dot" />
+                <WalletIcon size={14} className="wallet-icon-muted" />
+                <span className="wallet-address-text font-mono">
+                  {wallet.address && wallet.address.length >= 10
+                    ? `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`
+                    : wallet.address || wallet.walletName || 'Connected'}
+                </span>
               </button>
             ) : (
               <button
