@@ -33,6 +33,27 @@ export default defineConfig({
           new URL('./node_modules/@midnight-ntwrk/compact-runtime', import.meta.url),
         ),
       },
+      // Pin onchain-runtime-v3 to web's copy so StateValue instanceof passes.
+      {
+        find: '@midnight-ntwrk/onchain-runtime-v3',
+        replacement: fileURLToPath(
+          new URL('./node_modules/@midnight-ntwrk/onchain-runtime-v3', import.meta.url),
+        ),
+      },
+      // Pin ledger-v8 to web's copy.
+      {
+        find: '@midnight-ntwrk/ledger-v8',
+        replacement: fileURLToPath(
+          new URL('./node_modules/@midnight-ntwrk/ledger-v8', import.meta.url),
+        ),
+      },
+      // Pin midnight-js-contracts to web's copy.
+      {
+        find: '@midnight-ntwrk/midnight-js-contracts',
+        replacement: fileURLToPath(
+          new URL('./node_modules/@midnight-ntwrk/midnight-js-contracts', import.meta.url),
+        ),
+      },
       // Single alias so every component imports reserves from one path.
       {
         find: '@reserves',
@@ -57,7 +78,9 @@ export default defineConfig({
   optimizeDeps: {
     exclude: [
       '@midnight-ntwrk/compact-runtime',
-      '@midnight-ntwrk/onchain-runtime',
+      '@midnight-ntwrk/onchain-runtime-v3',
+      '@midnight-ntwrk/ledger-v8',
+      '@midnight-ntwrk/midnight-js-contracts',
     ],
   },
 });
