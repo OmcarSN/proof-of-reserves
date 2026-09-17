@@ -323,6 +323,9 @@ export function friendlyError(err: any): string {
   if (low.includes('failed proof server response') || (low.includes('econnrefused') && low.includes('6300'))) {
     return `The local proof server isn't reachable. Start it, then retry:\n${PROOF_SERVER_DOCKER_CMD}`;
   }
+  if (low.includes('not authorized') || low.includes('caller is not the custodian')) {
+    return 'Not authorized: The custodian secret does not match the deployed contract owner. Use the 64-hex secret from "Paste Deployed Owner Secret" or "Fill Sample Portfolio" to attest on this contract.';
+  }
   if (low.includes('assertion') || low.includes('assert')) {
     const match = raw.match(/assertion failed[:\s]+([^\n\r]+)/i) || raw.match(/assert[^:]*:\s*([^\n\r]+)/i);
     const detail = match && match[1] ? `: "${match[1].trim()}"` : '';

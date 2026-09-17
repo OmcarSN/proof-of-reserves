@@ -22,13 +22,15 @@ interface AttestPanelProps {
   onNavigateToStatus?: () => void;
 }
 
+const DEPLOYED_PREPROD_SECRET = '64ffa62c870fcf6c98cfcf1ecc024747de2c7721aca89861111af6aa042183ad';
+
 export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }: AttestPanelProps) {
   const [passphrase, setPassphrase] = useState('');
   const [showPassphrase, setShowPassphrase] = useState(false);
-  const [custodianSecretHex, setCustodianSecretHex] = useState('');
+  const [custodianSecretHex, setCustodianSecretHex] = useState(DEPLOYED_PREPROD_SECRET);
   const [showSecretHex, setShowSecretHex] = useState(false);
-  const [showAdvancedSecret, setShowAdvancedSecret] = useState(false);
-  const [totalAssets, setTotalAssets] = useState('');
+  const [showAdvancedSecret, setShowAdvancedSecret] = useState(true);
+  const [totalAssets, setTotalAssets] = useState('10000');
   const [balanceInputs, setBalanceInputs] = useState<string[]>(['1250', '2400', '1850', '3100']);
   const [pasteMode, setPasteMode] = useState(false);
   const [pasteText, setPasteText] = useState('');
