@@ -7,10 +7,11 @@ import { TruncatedHash } from './components/TruncatedHash';
 import { AttestPanel } from './components/AttestPanel';
 import { StatusPanel } from './components/StatusPanel';
 import { VerifyPanel } from './components/VerifyPanel';
+import { JoinPanel } from './components/JoinPanel';
 import { ParticleBackground } from './components/ParticleBackground';
-import { ShieldCheckIcon, SparklesIcon, TreeIcon, WalletIcon } from './components/Icons';
+import { ShieldCheckIcon, SparklesIcon, TreeIcon, WalletIcon, UsersIcon } from './components/Icons';
 
-type Tab = 'status' | 'attest' | 'verify';
+type Tab = 'status' | 'attest' | 'verify' | 'join';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('status');
@@ -43,6 +44,11 @@ export default function App() {
       id: 'verify',
       label: 'Verify My Proof',
       icon: <TreeIcon size={16} />,
+    },
+    {
+      id: 'join',
+      label: 'Join Network',
+      icon: <UsersIcon size={16} />,
     },
   ];
 
@@ -155,6 +161,13 @@ export default function App() {
           )}
 
           {activeTab === 'verify' && <VerifyPanel />}
+
+          {activeTab === 'join' && (
+            <JoinPanel
+              wallet={wallet}
+              onConnect={handleConnect}
+            />
+          )}
         </div>
       </main>
 
