@@ -11,7 +11,7 @@ import { ProofServerBanner } from './ProofServerBanner';
 import { SolventStamp } from './SolventStamp';
 import { SealedRow } from './SealedRow';
 import { TruncatedHash } from './TruncatedHash';
-import { LockIcon, ShieldCheckIcon, DownloadIcon, EyeIcon, EyeOffIcon, ArrowRightIcon } from './Icons';
+import { LockIcon, ShieldCheckIcon, DownloadIcon, EyeIcon, EyeOffIcon, ArrowRightIcon, UploadIcon } from './Icons';
 
 type Phase = 'idle' | 'preflight' | 'connecting' | 'proving' | 'success' | 'error';
 
@@ -98,6 +98,29 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
     setBalanceInputs((prev) => prev.filter((_, idx) => idx !== i));
   const updateRow = (i: number, val: string) =>
     setBalanceInputs((prev) => prev.map((v, idx) => (idx === i ? val : v)));
+
+  const handleCsvImport = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const text = ev.target?.result as string;
+      if (!text) return;
+      const values = text
+        .split(/[\n,;\s]+/)
+        .map((s) => s.trim())
+        .filter((s) => /^\d+$/.test(s));
+      if (values.length > 0) {
+        setBalanceInputs(values);
+        setPasteMode(false);
+        addToast(`Imported ${values.length} customer balances from ${file.name}`, 'success');
+      } else {
+        addToast('No valid numeric balances found in file', 'error');
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // reset for re-import
+  };
 
   const handleSubmit = useCallback(async () => {
     setErrorMsg('');
@@ -555,6 +578,16 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
             </div>
 
             <div className="balances-toggle-group">
+              <label className="btn btn--ghost btn--sm csv-import-label" title="Import balances from a CSV or text file">
+                <UploadIcon size={14} />
+                <span>Import CSV</span>
+                <input
+                  type="file"
+                  accept=".csv,.txt,.tsv"
+                  onChange={handleCsvImport}
+                  style={{ display: 'none' }}
+                />
+              </label>
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
