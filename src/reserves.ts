@@ -314,6 +314,9 @@ export function friendlyError(err: any): string {
   if (low.includes('reject') || low.includes('denied') || (err && err.code === 4001)) {
     return 'You dismissed the wallet popup. Click attest again and approve the request in the wallet.';
   }
+  if (low.includes('wallet ui disconnected') || low.includes('ui disconnected')) {
+    return 'Wallet popup was closed or disconnected before approval. Click "Try Again", ensure 1AM Wallet is open and unlocked, then approve the transaction.';
+  }
   if (low.includes('lock')) {
     return 'Your wallet is locked. Open your wallet extension, enter your password, then try again.';
   }
