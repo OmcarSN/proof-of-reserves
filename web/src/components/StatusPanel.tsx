@@ -1,9 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useReserves } from '../hooks/useReserves';
 import { SolventStamp } from './SolventStamp';
 import { TruncatedHash } from './TruncatedHash';
 import { CONTRACT_ADDRESS } from '@reserves';
-import { ShieldCheckIcon, LockIcon, RefreshCwIcon, CheckCircleIcon, ArrowUpRightIcon } from './Icons';
+import { ShieldCheckIcon, LockIcon, RefreshCwIcon, CheckCircleIcon, ArrowUpRightIcon, ShareIcon } from './Icons';
 
 interface StatusPanelProps {
   onNavigateToAttest?: () => void;
@@ -47,6 +47,38 @@ function relativeTime(iso: string | null): string {
 export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPanelProps) {
   const { data, loading, error, refetch } = useReserves();
   const [demoMode, setDemoMode] = useState(false);
+  const [lastChecked, setLastChecked] = useState<Date>(new Date());
+  const [copied, setCopied] = useState(false);
+  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Auto-refresh every 30 seconds
+  useEffect(() => {
+    intervalRef.current = setInterval(() => {
+      refetch();
+      setLastChecked(new Date());
+    }, 30000);
+    return () => {
+      if (intervalRef.current) clearInterval(intervalRef.current);
+    };
+  }, [refetch]);
+
+  const handleRefresh = () => {
+    refetch();
+    setLastChecked(new Date());
+  };
+
+  const handleShare = () => {
+    const url = window.location.origin;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const lastCheckedStr = lastChecked.toLocaleTimeString(undefined, {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 
   // Loading skeleton
   if (loading) {
@@ -263,15 +295,29 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
               <span className="pulse-dot pulse-dot--green" />
               <span>ON-CHAIN VERDICT RECORD</span>
             </div>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={refetch}
-              title="Refresh on-chain state"
-            >
-              <RefreshCwIcon size={14} />
-              <span>Sync</span>
-            </button>
+            <div className="verdict-actions">
+              <span className="last-checked-tag">
+                Last checked: {lastCheckedStr}
+              </span>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={handleShare}
+                title="Copy link to share"
+              >
+                <ShareIcon size={14} />
+                <span>{copied ? 'Copied!' : 'Share'}</span>
+              </button>
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={handleRefresh}
+                title="Refresh on-chain state"
+              >
+                <RefreshCwIcon size={14} />
+                <span>Sync</span>
+              </button>
+            </div>
           </div>
 
           <div className="verdict-stamp-wrap">
