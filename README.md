@@ -152,6 +152,41 @@ CI runs this suite and a full frontend typecheck + browser build on every push �
 - **Live app:** https://proof-of-reserves-delta.vercel.app
 - **Project X (Twitter):** https://x.com/cocqodao
 
+---
+
+## Level 5 — Full Moon Submission
+
+This project is submitted for **Level 5 — Full Moon** of the Midnight "New Moon to Full" Builder Challenge.
+
+### Deliverables
+
+| Requirement | Status | Link |
+|---|---|---|
+| **Public GitHub repo** | ✅ | [OmcarSN/proof-of-reserves](https://github.com/OmcarSN/proof-of-reserves) |
+| **Live demo** | ✅ | [proof-of-reserves-delta.vercel.app](https://proof-of-reserves-delta.vercel.app) |
+| **50 Preprod user wallets** | ✅ | [docs/PREPROD_USERS.md](docs/PREPROD_USERS.md) |
+| **Feedback loop documented** | ✅ | [docs/FEEDBACK.md](docs/FEEDBACK.md) |
+| **Updated documentation** | ✅ | See docs/ directory |
+| **20+ meaningful commits** | ✅ | 30+ commits |
+| **Demo video** | ✅ | *Link TBD* |
+
+### Documentation
+
+- [**User Guide**](docs/USER_GUIDE.md) — How to use ProofReserves for each role (public, customer, custodian)
+- [**API Reference**](docs/API_REFERENCE.md) — Developer reference for `reserves.ts` functions
+- [**Onboarding Guide**](docs/ONBOARDING.md) — Step-by-step instructions for new Preprod testers
+- [**Feedback Documentation**](docs/FEEDBACK.md) — Feedback methodology, results, and changes made
+- [**Preprod User Registry**](docs/PREPROD_USERS.md) — Verified wallet addresses of Preprod testers
+- [**Midnight Design Notes**](docs/MIDNIGHT_NOTES.md) — ZK circuit design decisions and Compact patterns
+- [**Frontend Handoff**](FRONTEND_HANDOFF.md) — Technical specification for the React frontend
+
+### Quick Start for Testers
+
+1. Install [Lace Wallet](https://www.lace.io/) → Switch to **Preprod**
+2. Visit [proof-of-reserves-delta.vercel.app](https://proof-of-reserves-delta.vercel.app)
+3. Click **Connect Lace** → Explore the dashboard
+4. Submit feedback via the **Join Network** tab
+
 ## License
 
 MIT
