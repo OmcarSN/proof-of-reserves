@@ -454,11 +454,24 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
                     {showSecretHex ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
                   </button>
                 </div>
-                {custodianSecretHex.length > 0 && (
-                  <span className={`hex-status ${isHexValid ? 'hex-status--valid' : 'hex-status--invalid'}`} style={{ marginTop: 4, display: 'block' }}>
-                    {isHexValid ? '✓ Valid 64-hex secret' : `Need 64 hex (${custodianSecretHex.length}/64)`}
-                  </span>
-                )}
+                <div style={{ marginTop: 6, display: 'flex', gap: 8, alignItems: 'center', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    className="btn btn--ghost btn--xs"
+                    onClick={() => {
+                      setCustodianSecretHex('64ffa62c870fcf6c98cfcf1ecc024747de2c7721aca89861111af6aa042183ad');
+                      addToast('Filled deployed contract custodian secret', 'info');
+                    }}
+                    style={{ fontSize: '11px', padding: '3px 8px' }}
+                  >
+                    Paste Deployed Owner Secret
+                  </button>
+                  {custodianSecretHex.length > 0 && (
+                    <span className={`hex-status ${isHexValid ? 'hex-status--valid' : 'hex-status--invalid'}`}>
+                      {isHexValid ? '✓ Valid 64-hex format' : `Need 64 hex (${custodianSecretHex.length}/64)`}
+                    </span>
+                  )}
+                </div>
               </div>
             )}
           </div>

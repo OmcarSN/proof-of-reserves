@@ -324,7 +324,9 @@ export function friendlyError(err: any): string {
     return `The local proof server isn't reachable. Start it, then retry:\n${PROOF_SERVER_DOCKER_CMD}`;
   }
   if (low.includes('assertion') || low.includes('assert')) {
-    return 'Smart contract assertion failed: Verify that your custodian secret matches the deployed contract owner and assets >= liabilities.';
+    const match = raw.match(/assertion failed[:\s]+([^\n\r]+)/i) || raw.match(/assert[^:]*:\s*([^\n\r]+)/i);
+    const detail = match && match[1] ? `: "${match[1].trim()}"` : '';
+    return `Smart contract assertion failed${detail}.`;
   }
   if (low.includes('failed to fetch') || low.includes('networkerror')) {
     return 'Network error reaching Midnight or the proof server. Check your connection.';
