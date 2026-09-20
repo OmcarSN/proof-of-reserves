@@ -79,10 +79,7 @@ export default function App() {
                 <ProofLogo size={22} color="#0F2C23" />
               </div>
               <div className="app-brand-titles">
-                <div className="app-logo-row">
-                  <span className="app-logo">ProofReserves</span>
-                  <span className="app-version-badge">Preprod</span>
-                </div>
+                <span className="app-logo">ProofReserves</span>
                 <span className="app-tagline">Zero-Knowledge Solvency Protocol</span>
               </div>
             </div>
@@ -105,13 +102,8 @@ export default function App() {
             ))}
           </nav>
 
-          {/* Right: Network Status & Wallet Actions */}
+          {/* Right: Wallet Actions */}
           <div className="app-header-right">
-            <div className="network-pill" title="Live connection on Midnight Preprod Testnet">
-              <span className="pulse-dot pulse-dot--green" />
-              <span className="network-pill-text">Midnight Preprod</span>
-            </div>
-
             {wallet ? (
               <button
                 type="button"
