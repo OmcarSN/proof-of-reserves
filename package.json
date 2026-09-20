@@ -10,7 +10,8 @@
     "test:watch": "vitest",
     "gen:seed": "node scripts/gen-seed.mjs",
     "deploy:preprod": "cross-env NODE_OPTIONS=--max-old-space-size=16384 tsx deploy/deploy.ts preprod",
-    "deploy:preview": "cross-env NODE_OPTIONS=--max-old-space-size=16384 tsx deploy/deploy.ts preview"
+    "deploy:preview": "cross-env NODE_OPTIONS=--max-old-space-size=16384 tsx deploy/deploy.ts preview",
+    "attest:preprod": "cross-env NODE_OPTIONS=--max-old-space-size=16384 tsx scripts/attest.ts"
   },
   "devDependencies": {
     "@midnight-ntwrk/compact-runtime": "0.16.0",
