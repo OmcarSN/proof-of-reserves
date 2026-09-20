@@ -7,7 +7,15 @@ import { StatusPanel } from './components/StatusPanel';
 import { VerifyPanel } from './components/VerifyPanel';
 import { JoinPanel } from './components/JoinPanel';
 import { ParticleBackground } from './components/ParticleBackground';
-import { ProofLogo, ShieldCheckIcon, SparklesIcon, TreeIcon, WalletIcon, UsersIcon } from './components/Icons';
+import {
+  ProofLogo,
+  ShieldCheckIcon,
+  SparklesIcon,
+  TreeIcon,
+  WalletIcon,
+  UsersIcon,
+  ArrowUpRightIcon,
+} from './components/Icons';
 
 type Tab = 'status' | 'attest' | 'verify' | 'join';
 
@@ -31,22 +39,22 @@ export default function App() {
     {
       id: 'status',
       label: 'Solvency Overview',
-      icon: <ShieldCheckIcon size={16} />,
+      icon: <ShieldCheckIcon size={15} />,
     },
     {
       id: 'attest',
       label: 'Custodian Attest',
-      icon: <SparklesIcon size={16} />,
+      icon: <SparklesIcon size={15} />,
     },
     {
       id: 'verify',
       label: 'Verify My Proof',
-      icon: <TreeIcon size={16} />,
+      icon: <TreeIcon size={15} />,
     },
     {
       id: 'join',
       label: 'Join Network',
-      icon: <UsersIcon size={16} />,
+      icon: <UsersIcon size={15} />,
     },
   ];
 
@@ -58,36 +66,52 @@ export default function App() {
       {/* ── Professional Navigation Header ── */}
       <header className="app-header">
         <div className="app-header-inner">
+          {/* Left: Brand & Protocol Mark */}
           <div className="app-header-left">
-            <div className="app-brand" onClick={() => setActiveTab('status')} style={{ cursor: 'pointer' }}>
+            <div
+              className="app-brand"
+              onClick={() => setActiveTab('status')}
+              role="button"
+              tabIndex={0}
+              title="ProofReserves Solvency Protocol"
+            >
               <div className="app-logo-mark">
-                <ProofLogo size={24} color="#0F2C23" />
+                <ProofLogo size={22} color="#0F2C23" />
               </div>
               <div className="app-brand-titles">
-                <span className="app-logo">ProofReserves</span>
+                <div className="app-logo-row">
+                  <span className="app-logo">ProofReserves</span>
+                  <span className="app-version-badge">Preprod</span>
+                </div>
                 <span className="app-tagline">Zero-Knowledge Solvency Protocol</span>
               </div>
             </div>
-
-            {/* Desktop Navbar Tabs */}
-            <nav className="header-nav" role="tablist" aria-label="Main Navigation">
-              {navItems.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeTab === item.id}
-                  className={`nav-tab ${activeTab === item.id ? 'nav-tab--active' : ''}`}
-                  onClick={() => setActiveTab(item.id)}
-                >
-                  <span className="nav-tab-icon">{item.icon}</span>
-                  <span>{item.label}</span>
-                </button>
-              ))}
-            </nav>
           </div>
 
+          {/* Center: Desktop Navbar Tabs (Capsule Bar) */}
+          <nav className="header-nav" role="tablist" aria-label="Main Navigation">
+            {navItems.map((item) => (
+              <button
+                key={item.id}
+                type="button"
+                role="tab"
+                aria-selected={activeTab === item.id}
+                className={`nav-tab ${activeTab === item.id ? 'nav-tab--active' : ''}`}
+                onClick={() => setActiveTab(item.id)}
+              >
+                <span className="nav-tab-icon">{item.icon}</span>
+                <span className="nav-tab-label">{item.label}</span>
+              </button>
+            ))}
+          </nav>
+
+          {/* Right: Network Status & Wallet Actions */}
           <div className="app-header-right">
+            <div className="network-pill" title="Live connection on Midnight Preprod Testnet">
+              <span className="pulse-dot pulse-dot--green" />
+              <span className="network-pill-text">Midnight Preprod</span>
+            </div>
+
             {wallet ? (
               <button
                 type="button"
@@ -99,22 +123,24 @@ export default function App() {
                   <span className="wallet-live-dot" />
                   <span className="wallet-live-ping" />
                 </span>
-                <WalletIcon size={14} className="wallet-icon-muted" />
+                <span className="wallet-provider-tag">{wallet.walletName || '1AM'}</span>
                 <span className="wallet-address-text font-mono">
                   {wallet.address && wallet.address.length >= 10
                     ? `${wallet.address.slice(0, 6)}…${wallet.address.slice(-4)}`
-                    : wallet.address || wallet.walletName || 'Connected'}
+                    : wallet.address || 'Connected'}
                 </span>
+                <span className="wallet-disconnect-hint" title="Disconnect">✕</span>
               </button>
             ) : (
               <button
                 type="button"
-                className="btn btn--primary btn--pill"
+                className="btn btn--primary btn--pill header-connect-btn"
                 onClick={handleConnect}
                 disabled={connecting}
               >
+                <WalletIcon size={14} />
                 <span>{connecting ? 'Connecting…' : 'Connect Wallet'}</span>
-                <span className="btn-arrow">↗</span>
+                <ArrowUpRightIcon size={13} className="btn-arrow" />
               </button>
             )}
           </div>
