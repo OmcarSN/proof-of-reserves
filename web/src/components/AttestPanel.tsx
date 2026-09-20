@@ -23,6 +23,7 @@ interface AttestPanelProps {
 }
 
 const DEPLOYED_PREPROD_SECRET = '64ffa62c870fcf6c98cfcf1ecc024747de2c7721aca89861111af6aa042183ad';
+const DEPLOYED_PREPROD_PUBLIC_KEY = 'ac935361b51c48a0aa468fed4560bc6c68a0ca9883317467094882b26ca908b6';
 
 export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }: AttestPanelProps) {
   const [passphrase, setPassphrase] = useState('');
@@ -75,9 +76,13 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
   const cleanHex = custodianSecretHex.trim();
   const hasSecretHex = cleanHex.length > 0;
   const isHexValid = /^[0-9a-fA-F]{64}$/.test(cleanHex);
-  const hasAuth = hasSecretHex ? isHexValid : passphrase.length > 0;
+  const isPastingPublicKey =
+    passphrase.trim().toLowerCase() === DEPLOYED_PREPROD_PUBLIC_KEY ||
+    cleanHex.toLowerCase() === DEPLOYED_PREPROD_PUBLIC_KEY;
+  const hasAuth = !isPastingPublicKey && (hasSecretHex ? isHexValid : passphrase.length > 0);
 
   const canSubmit =
+    !isPastingPublicKey &&
     hasAuth &&
     totalAssetsNum !== null &&
     balances.length > 0 &&
@@ -517,6 +522,30 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
                     </span>
                   )}
                 </div>
+              </div>
+            )}
+
+            {isPastingPublicKey && (
+              <div style={{ marginTop: 10, padding: '10px 12px', background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 8, fontSize: '12px', color: '#92400E', lineHeight: 1.45 }}>
+                <strong style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                  <span>⚠️</span> Custodian Identity is a Public Key, Not the Secret!
+                </strong>
+                <p style={{ margin: '4px 0 8px' }}>
+                  The <code style={{ wordBreak: 'break-all' }}>ac9353...08b6</code> value on the Status tab is the vault&apos;s public identifier. To publish an attestation, the contract requires the private <strong>Custodian Secret</strong>.
+                </p>
+                <button
+                  type="button"
+                  className="btn btn--primary btn--xs"
+                  onClick={() => {
+                    setCustodianSecretHex(DEPLOYED_PREPROD_SECRET);
+                    setShowAdvancedSecret(true);
+                    setPassphrase('');
+                    addToast('Swapped to correct deployed custodian secret', 'success');
+                  }}
+                  style={{ fontSize: '11px', padding: '4px 10px' }}
+                >
+                  Click Here to Use Correct Deployed Secret
+                </button>
               </div>
             )}
           </div>

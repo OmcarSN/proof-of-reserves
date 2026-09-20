@@ -322,19 +322,24 @@ export function friendlyError(err: any): string {
   if (low.includes('lock')) {
     return 'Your wallet is locked. Open your wallet extension, enter your password, then try again.';
   }
-  if (low.includes('insufficient') || low.includes('dust') || (low.includes('balance') && !low.includes('balanceunsealed') && !low.includes('customer'))) {
-    return 'Not enough tNIGHT / DUST to pay the fee. Fund this wallet on Preprod, register NIGHT for DUST, then retry.';
-  }
-  if (low.includes('failed proof server response') || (low.includes('econnrefused') && low.includes('6300'))) {
-    return `The local proof server isn't reachable. Start it, then retry:\n${PROOF_SERVER_DOCKER_CMD}`;
-  }
   if (low.includes('not authorized') || low.includes('caller is not the custodian')) {
-    return 'Not authorized: The custodian secret does not match the deployed contract owner. Use the 64-hex secret from "Paste Deployed Owner Secret" or "Fill Sample Portfolio" to attest on this contract.';
+    return 'Not authorized: The custodian secret does not match the deployed contract owner. Note: Custodian Identity on the Status screen is a public key, not the secret. Click "Paste Deployed Owner Secret" or "Fill Sample Portfolio" to use the correct secret.';
   }
   if (low.includes('assertion') || low.includes('assert')) {
     const match = raw.match(/assertion failed[:\s]+([^\n\r]+)/i) || raw.match(/assert[^:]*:\s*([^\n\r]+)/i);
     const detail = match && match[1] ? `: "${match[1].trim()}"` : '';
-    return `Smart contract assertion failed${detail}.`;
+    return `Smart contract assertion failed${detail}. Ensure your custodian secret matches the deployed contract.`;
+  }
+  if (
+    low.includes('insufficient dust') ||
+    low.includes('not enough dust') ||
+    low.includes('not enough tnight') ||
+    (low.includes('insufficient') && (low.includes('fee') || low.includes('gas') || low.includes('fund') || low.includes('balance')))
+  ) {
+    return 'Not enough tNIGHT / DUST to pay the fee. Fund this wallet on Preprod, register NIGHT for DUST, then retry.';
+  }
+  if (low.includes('failed proof server response') || (low.includes('econnrefused') && low.includes('6300'))) {
+    return `The local proof server isn't reachable. Start it, then retry:\n${PROOF_SERVER_DOCKER_CMD}`;
   }
   if (low.includes('failed to fetch') || low.includes('networkerror')) {
     return 'Network error reaching Midnight or the proof server. Check your connection.';
