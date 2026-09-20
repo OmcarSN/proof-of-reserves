@@ -359,9 +359,41 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
                 <span className="record-sub">Live on Midnight Preprod</span>
               </div>
               <div className="record-data">
-                <TruncatedHash hash={CONTRACT_ADDRESS} prefixLen={10} suffixLen={8} label="Contract Address" />
+                <TruncatedHash
+                  hash={CONTRACT_ADDRESS}
+                  prefixLen={10}
+                  suffixLen={8}
+                  label="Contract Address"
+                  href={`https://explorer.preprod.midnight.network/contract/${CONTRACT_ADDRESS}`}
+                />
               </div>
             </div>
+          </div>
+
+          {/* On-Chain Action Bar: balances column height & provides immediate next steps */}
+          <div className="verdict-footer-actions">
+            <a
+              href={`https://explorer.preprod.midnight.network/contract/${CONTRACT_ADDRESS}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="btn btn--ghost btn--sm"
+              title="Inspect smart contract deployment on Midnight Preprod Explorer"
+            >
+              <span>Inspect on Preprod Explorer</span>
+              <ArrowUpRightIcon size={14} />
+            </a>
+
+            {onNavigateToAttest && (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={onNavigateToAttest}
+                title="Publish new solvency epoch as custodian"
+              >
+                <span>Publish Attestation</span>
+                <ArrowUpRightIcon size={14} />
+              </button>
+            )}
           </div>
         </div>
 

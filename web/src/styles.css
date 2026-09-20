@@ -510,11 +510,11 @@ code, .mono, .font-mono {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: var(--sp-4);
-  margin-bottom: var(--sp-6);
+  margin-bottom: var(--sp-5);
 }
 
 .metric-card {
-  padding: 22px 24px;
+  padding: 18px 20px;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
@@ -547,8 +547,8 @@ code, .mono, .font-mono {
 /* ── 2-Column Desktop Grid Layouts ──────────────────────────────────── */
 .status-grid-layout {
   display: grid;
-  grid-template-columns: 1.4fr 1fr;
-  gap: var(--sp-6);
+  grid-template-columns: 1.35fr 1fr;
+  gap: var(--sp-5);
   align-items: start;
 }
 
@@ -571,7 +571,7 @@ code, .mono, .font-mono {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: 36px;
+  padding: 26px 30px;
   box-shadow: 0 4px 20px rgba(15, 44, 35, 0.04);
   position: relative;
   transition: border-color var(--duration) var(--ease);
@@ -608,7 +608,7 @@ code, .mono, .font-mono {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: var(--sp-5);
+  margin-bottom: var(--sp-4);
 }
 
 .verdict-tag {
@@ -629,9 +629,9 @@ code, .mono, .font-mono {
 .verdict-stamp-wrap {
   display: flex;
   align-items: center;
-  gap: var(--sp-6);
-  margin-bottom: var(--sp-6);
-  padding-bottom: var(--sp-6);
+  gap: var(--sp-5);
+  margin-bottom: var(--sp-4);
+  padding-bottom: var(--sp-4);
   border-bottom: 1px solid var(--color-border-subtle);
   flex-wrap: wrap;
 }
@@ -690,89 +690,100 @@ code, .mono, .font-mono {
   color: #5C7150;
 }
 
+.verdict-footer-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: var(--sp-4);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--color-border-subtle);
+  flex-wrap: wrap;
+}
+
 /* ── Side Card & Privacy Breakdown ──────────────────────────────────── */
 .side-card-header {
   display: flex;
   align-items: center;
   gap: var(--sp-3);
-  margin-bottom: var(--sp-3);
+  margin-bottom: 6px;
 }
 
 .side-card-title {
-  font-size: 1.25rem;
+  font-size: 1.22rem;
   font-weight: 800;
   letter-spacing: -0.02em;
   color: #0F2C23;
 }
 
 .side-card-desc {
-  font-size: 13px;
+  font-size: 12.5px;
   color: #3E5A37;
-  line-height: 1.55;
-  margin-bottom: 22px;
+  line-height: 1.5;
+  margin-bottom: 14px;
 }
 
 .privacy-comparison {
   display: flex;
   flex-direction: column;
-  gap: var(--sp-4);
-  margin-bottom: var(--sp-6);
+  gap: 10px;
+  margin-bottom: var(--sp-4);
 }
 
 .privacy-block {
   background: #F4F7EA;
   border: 1px solid var(--color-border-subtle);
   border-radius: var(--radius-md);
-  padding: 18px 20px;
+  padding: 14px 18px;
 }
 
 .privacy-block-title {
   display: flex;
   align-items: center;
   gap: 6px;
-  font-size: 12px;
+  font-size: 11.5px;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   color: #0F2C23;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .privacy-checklist {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 5px;
 }
 
 .privacy-checklist li {
-  font-size: 12.5px;
+  font-size: 12px;
   color: #3E5A37;
-  line-height: 1.4;
+  line-height: 1.35;
   display: flex;
   align-items: center;
   gap: 6px;
 }
 
 .customer-action-card {
-  padding: 22px;
+  padding: 16px 18px;
   background: var(--color-surface-hero);
   border: 1px solid #C5D7B2;
   border-radius: var(--radius-md);
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 12px;
 }
 
 .customer-action-card strong {
-  font-size: 14px;
+  font-size: 13.5px;
   font-weight: 800;
   color: #0F2C23;
   display: block;
 }
 
 .customer-action-card p {
-  font-size: 12px;
+  font-size: 11.5px;
   color: #3E5A37;
   line-height: 1.45;
   margin-top: 3px;
@@ -1567,37 +1578,99 @@ code, .mono, .font-mono {
   flex-wrap: wrap;
 }
 
-/* ── Solvent Stamp ──────────────────────────────────────────────────── */
+/* ── Certified Institutional Solvency Seal ──────────────────────────── */
 .solvent-stamp {
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   user-select: none;
 }
 
-.solvent-stamp--lg {
-  transform: none;
+.solvent-stamp-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 20px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #DCEAC9 0%, #C8DCB2 100%);
+  border: 2px solid #2F7A4F;
+  box-shadow: 0 4px 14px rgba(47, 122, 79, 0.14), inset 0 1px 1px rgba(255, 255, 255, 0.7);
 }
 
-.solvent-stamp-border {
-  display: inline-block;
-  border: 2.5px solid currentColor;
-  border-radius: 12px;
-  padding: 8px 24px;
-  background: var(--color-surface-hero);
+.solvent-stamp--sm .solvent-stamp-inner {
+  padding: 6px 14px;
+  gap: 8px;
+  border-radius: 10px;
+}
+
+.solvent-stamp-icon-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #0F2C23;
+  color: #9AE6B4;
+  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(15, 44, 35, 0.2);
+}
+
+.solvent-stamp--sm .solvent-stamp-icon-wrap {
+  width: 24px;
+  height: 24px;
+}
+
+.solvent-stamp-content {
+  display: flex;
+  flex-direction: column;
 }
 
 .solvent-stamp-text {
   font-family: var(--font-heading);
-  font-weight: 800;
-  letter-spacing: 0.14em;
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  line-height: 1.1;
+  color: #0F2C23;
   text-transform: uppercase;
 }
 
-.solvent-stamp--sm .solvent-stamp-text { font-size: var(--text-base); }
-.solvent-stamp--lg .solvent-stamp-text { font-size: 1.5rem; }
+.solvent-stamp--sm .solvent-stamp-text {
+  font-size: 1rem;
+}
 
-.solvent-stamp--solvent { color: #0F2C23; }
-.solvent-stamp--insolvent { color: #B91C1C; }
-.solvent-stamp--insolvent .solvent-stamp-border { background: #FEE2E2; border-color: #B91C1C; }
+.solvent-stamp-sub {
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: #2F7A4F;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+.solvent-stamp--sm .solvent-stamp-sub {
+  font-size: 8px;
+}
+
+.solvent-stamp--insolvent .solvent-stamp-inner {
+  background: #FEE2E2;
+  border-color: #DC2626;
+  box-shadow: 0 4px 14px rgba(220, 38, 38, 0.14);
+}
+
+.solvent-stamp--insolvent .solvent-stamp-icon-wrap {
+  background: #DC2626;
+  color: #FFFFFF;
+}
+
+.solvent-stamp--insolvent .solvent-stamp-text {
+  color: #991B1B;
+}
+
+.solvent-stamp--insolvent .solvent-stamp-sub {
+  color: #DC2626;
+}
 
 /* ── Sealed Row ─────────────────────────────────────────────────────── */
 .sealed-row {
