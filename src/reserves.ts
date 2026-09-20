@@ -99,6 +99,8 @@ export interface AttestParams {
   totalAssets: number | bigint | string;
   /** Optional attestation time (seconds since epoch). Defaults to 5 min ago. */
   nowSeconds?: number | bigint;
+  /** Optional callback to notify callers of the current attestation phase. */
+  onProgress?: (phase: 'tree' | 'witnesses' | 'proving' | 'wallet_approval' | 'submitting') => void;
 }
 
 /** Result of a successful attestation. */
@@ -477,9 +479,7 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
       if (typeof laceApi.balanceAndProveTransaction === 'function') {
         return laceApi.balanceAndProveTransaction(tx);
       }
-      // New (DUST) Lace: balance the UNSEALED proven tx. Must pass SERIALIZED
-      // bytes across the extension boundary, and call EXACTLY ONCE (each call
-      // pops an approval dialog; looping trips "user rejected").
+      // New (DUST) Lace & 1AM Wallet: balance the UNSEALED proven tx.
       const method = 'balanceUnsealedTransaction';
       if (typeof laceApi[method] !== 'function') {
         throw new Error(`WALLET_DEBUG wallet has no ${method} (fns: ${fnNames(laceApi)})`);
@@ -488,10 +488,22 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
         throw new Error(`WALLET_DEBUG cannot serialize tx (proto: [${protoNames(tx)}])`);
       }
       const bytes = tx.serialize();
+      const hex = toHex(bytes);
       reached = 'balancing (wallet fee approval)';
+      params.onProgress?.('wallet_approval');
       let balanced: any;
       try {
-        balanced = await laceApi[method](bytes);
+        const is1AM = conn.walletName?.toLowerCase().includes('1am') ||
+                      inspectInjection().chosenKey === '1am' ||
+                      inspectInjection().chosenKey === 'midnight';
+        const primaryArg = is1AM ? hex : bytes;
+        const fallbackArg = is1AM ? bytes : hex;
+        try {
+          balanced = await laceApi[method](primaryArg);
+        } catch (callErr: any) {
+          console.warn('[ProofReserves] primary balance argument failed, trying alternate format:', callErr);
+          balanced = await laceApi[method](fallbackArg);
+        }
       } catch (e: any) {
         console.error('[ProofReserves] balanceUnsealedTransaction raw error:', e);
         throw new Error(`WALLET_DEBUG balanceUnsealedTransaction failed: ${describeErr(e)}`, { cause: e });
@@ -507,9 +519,29 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
           : null;
       if (!submit) throw new Error(`WALLET_DEBUG no submit method fns=[${fnNames(laceApi)}]`);
       reached = 'submitting (broadcast to node)';
+      params.onProgress?.('submitting');
       let txId: any;
       try {
-        txId = await submit(tx);
+        let payload = tx;
+        if (typeof tx === 'object' && tx !== null) {
+          if (typeof tx.tx === 'string') {
+            payload = tx.tx;
+          } else if (typeof tx.serialize === 'function') {
+            const b = tx.serialize();
+            payload = conn.walletName?.toLowerCase().includes('1am') ? toHex(b) : b;
+          }
+        }
+        try {
+          txId = await submit(payload);
+        } catch (subErr: any) {
+          if (typeof payload === 'string') {
+            txId = await submit(fromHex(payload));
+          } else if (payload instanceof Uint8Array) {
+            txId = await submit(toHex(payload));
+          } else {
+            throw subErr;
+          }
+        }
       } catch (e: any) {
         throw new Error(`WALLET_DEBUG submitTransaction failed: ${describeErr(e)}`, { cause: e });
       }

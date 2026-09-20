@@ -161,17 +161,17 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
     const stepTimer2 = setTimeout(() => setProvingStep(3), 6000);
 
     try {
-      const attestParams = hasSecretHex
-        ? {
-            custodianSecretHex: cleanHex,
-            balances,
-            totalAssets: totalAssets.trim(),
-          }
-        : {
-            passphrase,
-            balances,
-            totalAssets: totalAssets.trim(),
-          };
+      const attestParams = {
+        ...(hasSecretHex ? { custodianSecretHex: cleanHex } : { passphrase }),
+        balances,
+        totalAssets: totalAssets.trim(),
+        onProgress: (step: string) => {
+          if (step === 'tree') setProvingStep(1);
+          else if (step === 'witnesses') setProvingStep(2);
+          else if (step === 'proving') setProvingStep(3);
+          else if (step === 'wallet_approval' || step === 'submitting') setProvingStep(4);
+        },
+      };
 
       const res = await callAttest(attestParams);
       clearTimeout(stepTimer1);
@@ -252,11 +252,19 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
             </div>
           </div>
 
-          <div style={{ marginTop: 'var(--sp-4)', padding: '10px 16px', background: 'rgba(220, 234, 201, 0.45)', borderRadius: 10, border: '1px solid #C5D7B2', fontSize: '12px', color: '#0F2C23', textAlign: 'center', lineHeight: 1.5 }}>
-            ⏳ <strong>Proof server is crunching the ZK cryptographic proof (~15–20 seconds).</strong>
-            <br />
-            Please keep this tab in focus. <strong>Your 1AM Wallet prompt will appear automatically</strong> as soon as the proof finishes!
-          </div>
+          {provingStep >= 4 ? (
+            <div style={{ marginTop: 'var(--sp-4)', padding: '12px 16px', background: '#DCEAC9', borderRadius: 10, border: '2px solid #0F2C23', fontSize: '13px', color: '#0F2C23', textAlign: 'center', lineHeight: 1.6 }}>
+              ✨ <strong>ZK PROOF READY! 1AM Wallet is waiting for your signature.</strong>
+              <br />
+              Please check your 1AM Wallet prompt or click the 1AM extension icon to click <strong>"Approve"</strong>.
+            </div>
+          ) : (
+            <div style={{ marginTop: 'var(--sp-4)', padding: '10px 16px', background: 'rgba(220, 234, 201, 0.45)', borderRadius: 10, border: '1px solid #C5D7B2', fontSize: '12px', color: '#0F2C23', textAlign: 'center', lineHeight: 1.5 }}>
+              ⏳ <strong>Proof server is crunching the ZK cryptographic proof (~15–20 seconds).</strong>
+              <br />
+              Please keep this tab in focus. <strong>Your 1AM Wallet prompt will appear automatically</strong> as soon as the proof finishes!
+            </div>
+          )}
 
           <div className="proving-reassurance">
             <LockIcon size={14} />
