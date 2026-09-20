@@ -3,11 +3,12 @@ import React from 'react';
 interface IconProps {
   className?: string;
   size?: number;
+  style?: React.CSSProperties;
 }
 
-export function ShieldCheckIcon({ size = 20, className = '' }: IconProps) {
+export function ShieldCheckIcon({ size = 20, className = '', style }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style} aria-hidden="true">
       <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
       <polyline points="9 12 11 14 15 10" />
     </svg>
@@ -62,9 +63,9 @@ export function UnlockIcon({ size = 16, className = '' }: IconProps) {
   );
 }
 
-export function SparklesIcon({ size = 18, className = '' }: IconProps) {
+export function SparklesIcon({ size = 18, className = '', style }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style} aria-hidden="true">
       <path d="M12 3l1.912 5.813a2 2 0 001.275 1.275L21 12l-5.813 1.912a2 2 0 00-1.275 1.275L12 21l-1.912-5.813a2 2 0 00-1.275-1.275L3 12l5.813-1.912a2 2 0 001.275-1.275L12 3z" />
     </svg>
   );
@@ -90,9 +91,9 @@ export function CheckCircleIcon({ size = 18, className = '' }: IconProps) {
   );
 }
 
-export function AlertTriangleIcon({ size = 18, className = '' }: IconProps) {
+export function AlertTriangleIcon({ size = 18, className = '', style }: IconProps) {
   return (
-    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} aria-hidden="true">
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={style} aria-hidden="true">
       <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
       <line x1="12" y1="9" x2="12" y2="13" />
       <line x1="12" y1="17" x2="12.01" y2="17" />

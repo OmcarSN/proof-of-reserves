@@ -6,7 +6,16 @@ import {
   friendlyError,
   type CustomerProof,
 } from '@reserves';
-import { ShieldCheckIcon, TreeIcon, AlertTriangleIcon, CheckCircleIcon, RefreshCwIcon, FileTextIcon, UploadIcon } from './Icons';
+import {
+  ShieldCheckIcon,
+  TreeIcon,
+  AlertTriangleIcon,
+  CheckCircleIcon,
+  RefreshCwIcon,
+  FileTextIcon,
+  UploadIcon,
+  SparklesIcon,
+} from './Icons';
 
 type VerifyState =
   | { phase: 'idle' }
@@ -214,15 +223,18 @@ export function VerifyPanel() {
                 onClick={() => loadSampleProof(SAMPLE_VALID_PROOF)}
                 title="Load a valid test proof"
               >
-                Sample Proof (1250)
+                <SparklesIcon size={13} className="text-teal" />
+                <span>Sample Proof (1250)</span>
               </button>
               <button
                 type="button"
                 className="btn btn--ghost btn--sm"
                 onClick={() => loadSampleProof(SAMPLE_TAMPERED_PROOF)}
                 title="Load a tampered test proof"
+                style={{ borderColor: '#FCA5A5', color: '#991B1B' }}
               >
-                Tampered Proof (9999)
+                <AlertTriangleIcon size={13} style={{ color: '#DC2626' }} />
+                <span>Tampered Proof (9999)</span>
               </button>
             </div>
           </div>
@@ -264,7 +276,7 @@ export function VerifyPanel() {
                 />
               </label>
               <span className="field-hint" style={{ margin: 0 }}>
-                Paste JSON, drag \u0026 drop a file, or browse. All verification is local.
+                Paste JSON, drag &amp; drop a file, or browse. All verification is local.
               </span>
             </div>
           </div>
@@ -285,7 +297,7 @@ export function VerifyPanel() {
           {state.phase === 'idle' && (
             <div className="verify-empty-guide">
               <div className="guide-icon">
-                <TreeIcon size={32} className="text-teal" />
+                <TreeIcon size={28} className="text-teal" />
               </div>
               <h4>Awaiting Proof Input</h4>
               <p>
@@ -303,6 +315,22 @@ export function VerifyPanel() {
                 <div className="guide-step">
                   <span>3</span>
                   <span>Recomputed root is compared to the on-chain commitment</span>
+                </div>
+              </div>
+
+              {/* Security note to balance right column height with left column */}
+              <div className="verify-security-note">
+                <div className="security-note-header">
+                  <ShieldCheckIcon size={15} className="text-teal" />
+                  <span>Zero-Knowledge Customer Shield</span>
+                </div>
+                <p className="security-note-desc">
+                  Your balance and identity salt are checked 100% locally in your browser. No personal data is transmitted to the network or stored by any third party.
+                </p>
+                <div className="security-note-badges">
+                  <span className="sec-badge font-mono">✓ 100% Client-Side</span>
+                  <span className="sec-badge font-mono">✓ Blake2b-256 Sum Tree</span>
+                  <span className="sec-badge font-mono">✓ Preprod Verified</span>
                 </div>
               </div>
             </div>
