@@ -27,7 +27,7 @@ jobs:
           node-version: '22'
           cache: npm
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Run contract tests
         run: npm test
 
@@ -47,9 +47,9 @@ jobs:
       # imports resolve against the ROOT node_modules — so the browser build
       # needs the root deps installed too, not just web/ deps.
       - name: Install root dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
       - name: Install web dependencies
-        run: npm ci
+        run: npm ci --legacy-peer-deps
         working-directory: web
       - name: Typecheck
         run: npm run typecheck
