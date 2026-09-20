@@ -27,11 +27,11 @@ const DEPLOYED_PREPROD_SECRET = '64ffa62c870fcf6c98cfcf1ecc024747de2c7721aca8986
 export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }: AttestPanelProps) {
   const [passphrase, setPassphrase] = useState('');
   const [showPassphrase, setShowPassphrase] = useState(false);
-  const [custodianSecretHex, setCustodianSecretHex] = useState(DEPLOYED_PREPROD_SECRET);
+  const [custodianSecretHex, setCustodianSecretHex] = useState('');
   const [showSecretHex, setShowSecretHex] = useState(false);
-  const [showAdvancedSecret, setShowAdvancedSecret] = useState(true);
-  const [totalAssets, setTotalAssets] = useState('10000');
-  const [balanceInputs, setBalanceInputs] = useState<string[]>(['1250', '2400', '1850', '3100']);
+  const [showAdvancedSecret, setShowAdvancedSecret] = useState(false);
+  const [totalAssets, setTotalAssets] = useState('');
+  const [balanceInputs, setBalanceInputs] = useState<string[]>(['', '', '', '']);
   const [pasteMode, setPasteMode] = useState(false);
   const [pasteText, setPasteText] = useState('');
   const [showSealedPreview, setShowSealedPreview] = useState(false);
@@ -86,12 +86,23 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
 
   // Preset loader for testing
   const handleLoadDemoPreset = () => {
-    setCustodianSecretHex('64ffa62c870fcf6c98cfcf1ecc024747de2c7721aca89861111af6aa042183ad');
+    setCustodianSecretHex(DEPLOYED_PREPROD_SECRET);
     setShowAdvancedSecret(true);
     setTotalAssets('10000');
     setBalanceInputs(['1250', '2400', '1850', '3100']);
     setPasteMode(false);
     addToast('Sample portfolio loaded (Assets = 10,000, Liabilities = 8,600)', 'info');
+  };
+
+  const handleClearForm = () => {
+    setPassphrase('');
+    setCustodianSecretHex('');
+    setShowAdvancedSecret(false);
+    setTotalAssets('');
+    setBalanceInputs(['', '', '', '']);
+    setPasteText('');
+    setPasteMode(false);
+    addToast('Form cleared', 'info');
   };
 
   // Balance row management
@@ -392,21 +403,36 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
               <h3 className="panel-title">Custodian Parameters</h3>
               <p className="panel-subtitle">Authorize reserve attestation with your deployment credentials.</p>
             </div>
-            <button
-              type="button"
-              className="btn btn--ghost btn--sm"
-              onClick={handleLoadDemoPreset}
-              title="Pre-populate sample balances and deployed secret"
-            >
-              Fill Sample Portfolio
-            </button>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              {(hasSecretHex || passphrase || totalAssets || balances.length > 0) && (
+                <button
+                  type="button"
+                  className="btn btn--ghost btn--xs"
+                  onClick={handleClearForm}
+                  title="Reset form fields"
+                >
+                  Clear Form
+                </button>
+              )}
+              <button
+                type="button"
+                className="btn btn--ghost btn--sm"
+                onClick={handleLoadDemoPreset}
+                title="Pre-populate sample balances and deployed secret"
+              >
+                Fill Sample Portfolio
+              </button>
+            </div>
           </div>
 
           {/* Passphrase Input */}
           <div className="field">
-            <label className="field-label" htmlFor="passphrase">
-              Custodian Passphrase
-            </label>
+            <div className="field-label-row">
+              <label className="field-label" htmlFor="passphrase">
+                Custodian Passphrase
+              </label>
+              <span className="field-tag">Client-Side ZK Witness</span>
+            </div>
             <div className="input-row">
               <input
                 id="passphrase"
@@ -426,6 +452,9 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
                 {showPassphrase ? <EyeOffIcon size={16} /> : <EyeIcon size={16} />}
               </button>
             </div>
+            <p className="field-hint">
+              Confidential authorization credential known only to the vault owner. It is hashed locally to prove contract authority via ZK-SNARK without ever revealing the secret on-chain.
+            </p>
 
             {/* Advanced toggle */}
             <div style={{ marginTop: 'var(--sp-2)' }}>
