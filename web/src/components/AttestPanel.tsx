@@ -11,7 +11,17 @@ import { ProofServerBanner } from './ProofServerBanner';
 import { SolventStamp } from './SolventStamp';
 import { SealedRow } from './SealedRow';
 import { TruncatedHash } from './TruncatedHash';
-import { LockIcon, ShieldCheckIcon, DownloadIcon, EyeIcon, EyeOffIcon, ArrowRightIcon, UploadIcon } from './Icons';
+import {
+  LockIcon,
+  ShieldCheckIcon,
+  DownloadIcon,
+  EyeIcon,
+  EyeOffIcon,
+  ArrowRightIcon,
+  UploadIcon,
+  SparklesIcon,
+  FileTextIcon,
+} from './Icons';
 
 type Phase = 'idle' | 'preflight' | 'connecting' | 'proving' | 'success' | 'error';
 
@@ -425,7 +435,8 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
                 onClick={handleLoadDemoPreset}
                 title="Pre-populate sample balances and deployed secret"
               >
-                Fill Sample Portfolio
+                <SparklesIcon size={14} className="text-teal" />
+                <span>Fill Sample Portfolio</span>
               </button>
             </div>
           </div>
@@ -570,44 +581,42 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
             </p>
           </div>
 
-          {/* Live Solvency Ratio Gauge */}
-          {balances.length > 0 && (
-            <div className="solvency-gauge-card">
-              <div className="gauge-metrics-row">
-                <div className="gauge-item">
-                  <span className="gauge-label">Total Assets</span>
-                  <span className="gauge-val font-mono">{totalAssetsNum !== null ? totalAssetsNum.toString() : '—'}</span>
-                </div>
-                <div className="gauge-item">
-                  <span className="gauge-label">Total Liabilities</span>
-                  <span className="gauge-val font-mono">{totalLiabilities.toString()}</span>
-                </div>
-                <div className="gauge-item">
-                  <span className="gauge-label">Solvency Ratio</span>
-                  <span className={`gauge-val font-mono ${isSolvent ? 'text-teal' : 'text-error'}`}>
-                    {solvencyRatio !== null ? `${solvencyRatio}%` : '—'}
-                  </span>
-                </div>
-                <div className="gauge-item">
-                  <span className="gauge-label">Verdict</span>
-                  <span className={`verdict-pill ${isSolvent ? 'verdict-pill--ok' : 'verdict-pill--err'}`}>
-                    {totalAssetsNum === null ? 'Enter Assets' : isSolvent ? '✓ SOLVENT' : '✗ INSOLVENT'}
-                  </span>
-                </div>
+          {/* Live Solvency Ratio Gauge (Persistent & Stable Layout) */}
+          <div className="solvency-gauge-card">
+            <div className="gauge-metrics-row">
+              <div className="gauge-item">
+                <span className="gauge-label">Total Assets</span>
+                <span className="gauge-val font-mono">{totalAssetsNum !== null ? totalAssetsNum.toString() : '—'}</span>
               </div>
-
-              {totalAssetsNum !== null && (
-                <div className="solvency-bar-container">
-                  <div
-                    className={`solvency-bar-fill ${isSolvent ? 'solvency-bar-fill--solvent' : 'solvency-bar-fill--insolvent'}`}
-                    style={{
-                      width: `${Math.min(100, (Number(totalLiabilities) / Math.max(1, Number(totalAssetsNum))) * 100)}%`,
-                    }}
-                  />
-                </div>
-              )}
+              <div className="gauge-item">
+                <span className="gauge-label">Total Liabilities</span>
+                <span className="gauge-val font-mono">{balances.length > 0 ? totalLiabilities.toString() : '—'}</span>
+              </div>
+              <div className="gauge-item">
+                <span className="gauge-label">Solvency Ratio</span>
+                <span className={`gauge-val font-mono ${solvencyRatio !== null ? (isSolvent ? 'text-teal' : 'text-error') : ''}`}>
+                  {solvencyRatio !== null ? `${solvencyRatio}%` : '—'}
+                </span>
+              </div>
+              <div className="gauge-item">
+                <span className="gauge-label">Verdict</span>
+                <span className={`verdict-pill ${totalAssetsNum === null || balances.length === 0 ? 'verdict-pill--pending' : isSolvent ? 'verdict-pill--ok' : 'verdict-pill--err'}`}>
+                  {totalAssetsNum === null || balances.length === 0 ? 'Pending Input' : isSolvent ? '✓ SOLVENT' : '✗ INSOLVENT'}
+                </span>
+              </div>
             </div>
-          )}
+
+            <div className="solvency-bar-container">
+              <div
+                className={`solvency-bar-fill ${totalAssetsNum !== null && balances.length > 0 ? (isSolvent ? 'solvency-bar-fill--solvent' : 'solvency-bar-fill--insolvent') : 'solvency-bar-fill--empty'}`}
+                style={{
+                  width: totalAssetsNum !== null && balances.length > 0
+                    ? `${Math.min(100, (Number(totalLiabilities) / Math.max(1, Number(totalAssetsNum))) * 100)}%`
+                    : '0%',
+                }}
+              />
+            </div>
+          </div>
 
           {/* Publish Attestation Button */}
           <button
@@ -694,7 +703,8 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
                   }
                 }}
               >
-                {pasteMode ? 'Row Editor' : 'Paste CSV'}
+                <FileTextIcon size={14} />
+                <span>{pasteMode ? 'Row Editor' : 'Paste CSV'}</span>
               </button>
             </div>
           </div>
@@ -769,6 +779,28 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
               )}
             </div>
           )}
+
+          {/* Merkle Tree & Privacy Security Box: balances column height and highlights security */}
+          <div className="merkle-security-box">
+            <div className="security-box-header">
+              <ShieldCheckIcon size={15} className="text-teal" />
+              <span>Zero-Knowledge Merkle Tree Assurance</span>
+            </div>
+            <div className="security-box-grid">
+              <div className="security-item">
+                <span className="security-label">Tree Algorithm</span>
+                <span className="security-val font-mono">Blake2b-256 Sum Tree</span>
+              </div>
+              <div className="security-item">
+                <span className="security-label">Client Privacy</span>
+                <span className="security-val text-teal">100% Salted Leaves</span>
+              </div>
+              <div className="security-item">
+                <span className="security-label">Circuit Guarantee</span>
+                <span className="security-val">Non-negative Solvency</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

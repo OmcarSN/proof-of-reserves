@@ -927,20 +927,31 @@ code, .mono, .font-mono {
 }
 
 .advanced-toggle-btn {
-  background: transparent;
-  border: none;
+  background: rgba(15, 44, 35, 0.04);
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-pill);
   color: #3E5A37;
-  font-size: var(--text-xs);
-  font-weight: 700;
+  font-size: 11.5px;
+  font-weight: 600;
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px 0;
+  gap: 6px;
+  padding: 5px 12px;
+  transition: all 0.15s ease;
+  outline: none;
+  user-select: none;
 }
 
 .advanced-toggle-btn:hover {
+  background: rgba(15, 44, 35, 0.08);
   color: #0F2C23;
+  border-color: #B8CCA4;
+}
+
+.advanced-toggle-btn:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(15, 44, 35, 0.2);
 }
 
 .advanced-box {
@@ -1025,6 +1036,12 @@ code, .mono, .font-mono {
   color: var(--color-error);
 }
 
+.verdict-pill--pending {
+  background: rgba(15, 44, 35, 0.05);
+  border: 1px solid var(--color-border-subtle);
+  color: #5C7150;
+}
+
 .solvency-bar-container {
   height: 8px;
   border-radius: 999px;
@@ -1043,6 +1060,65 @@ code, .mono, .font-mono {
 
 .solvency-bar-fill--insolvent {
   background: var(--color-error);
+}
+
+.solvency-bar-fill--empty {
+  background: transparent;
+}
+
+/* ── Merkle Security Box (Right Column Balancing) ───────────────────── */
+.merkle-security-box {
+  margin-top: var(--sp-4);
+  padding: 15px 18px;
+  background: #F4F7EA;
+  border: 1px solid var(--color-border-subtle);
+  border-radius: var(--radius-md);
+}
+
+.security-box-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #0F2C23;
+  margin-bottom: 10px;
+}
+
+.security-box-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.security-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.security-label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #5C7150;
+  font-weight: 700;
+}
+
+.security-val {
+  font-size: 11.5px;
+  font-weight: 700;
+  color: #0F2C23;
+  line-height: 1.25;
+}
+
+@media (max-width: 640px) {
+  .security-box-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
 }
 
 /* ── Balances List Scrollable ───────────────────────────────────────── */
