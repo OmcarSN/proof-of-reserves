@@ -154,6 +154,8 @@ export default function App() {
             <JoinPanel
               wallet={wallet}
               onConnect={handleConnect}
+              onNavigate={(tab) => setActiveTab(tab)}
+              addToast={addToast}
             />
           )}
         </div>
