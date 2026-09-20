@@ -379,6 +379,7 @@ async function deriveShieldedKeys(api: any): Promise<{ coinPublicKey: string; en
  * verdict + commitment root reach the chain — never a balance.
  */
 export async function callAttest(params: AttestParams): Promise<AttestResult> {
+  try { setNetworkId(ACTIVE_NETWORK); } catch {}
   if (!CONTRACT_ADDRESS) {
     throw new Error('No contract deployed yet. Deploy to Preprod and set VITE_POR_CONTRACT_ADDRESS first.');
   }

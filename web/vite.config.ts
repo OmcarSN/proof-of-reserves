@@ -61,6 +61,13 @@ export default defineConfig({
           new URL('./node_modules/@midnight-ntwrk/midnight-js-contracts', import.meta.url),
         ),
       },
+      // Pin midnight-js-network-id to web's copy so setNetworkId shares the singleton state.
+      {
+        find: '@midnight-ntwrk/midnight-js-network-id',
+        replacement: fileURLToPath(
+          new URL('./node_modules/@midnight-ntwrk/midnight-js-network-id', import.meta.url),
+        ),
+      },
       // Single alias so every component imports reserves from one path.
       {
         find: '@reserves',
@@ -89,6 +96,7 @@ export default defineConfig({
       '@midnight-ntwrk/onchain-runtime-v3',
       '@midnight-ntwrk/ledger-v8',
       '@midnight-ntwrk/midnight-js-contracts',
+      '@midnight-ntwrk/midnight-js-network-id',
     ],
   },
 });

@@ -1,6 +1,14 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
+import { setNetworkId } from '@midnight-ntwrk/midnight-js-network-id';
 import './styles.css';
+
+// Initialize network ID globally before any wallet or contract interactions
+try {
+  setNetworkId('preprod');
+} catch {
+  // Already set
+}
 
 // Render the app. If the @reserves module fails to load (e.g. WASM init error),
 // we catch it and show a diagnostic message instead of a blank page.
