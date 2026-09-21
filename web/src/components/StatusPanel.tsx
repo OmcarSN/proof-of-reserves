@@ -65,6 +65,15 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
     }
   }, [data]);
 
+  // Refresh data when user switches wallet account in 1AM / Lace
+  useEffect(() => {
+    const onWalletChange = () => {
+      refetch();
+    };
+    window.addEventListener('proofreserves:walletChanged', onWalletChange);
+    return () => window.removeEventListener('proofreserves:walletChanged', onWalletChange);
+  }, [refetch]);
+
   const handleRefresh = () => {
     refetch();
   };

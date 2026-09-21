@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useToast } from './hooks/useToast';
 import { useWallet } from './hooks/useWallet';
 import { ToastContainer } from './components/Toast';
@@ -23,6 +23,22 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('status');
   const { toasts, addToast, removeToast } = useToast();
   const { wallet, connect, disconnect, connecting } = useWallet();
+
+  // Listen for active account switches from 1AM / Lace
+  useEffect(() => {
+    const handleWalletChanged = (e: any) => {
+      const newWallet = e.detail;
+      if (newWallet?.address) {
+        const short =
+          newWallet.address.length >= 10
+            ? `${newWallet.address.slice(0, 6)}…${newWallet.address.slice(-4)}`
+            : newWallet.address;
+        addToast(`Switched account to ${short} (${newWallet.walletName || '1AM'})`, 'info');
+      }
+    };
+    window.addEventListener('proofreserves:walletChanged', handleWalletChanged);
+    return () => window.removeEventListener('proofreserves:walletChanged', handleWalletChanged);
+  }, [addToast]);
 
   const handleConnect = async () => {
     try {

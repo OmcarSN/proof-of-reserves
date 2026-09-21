@@ -1,4 +1,4 @@
-﻿import { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { NETWORK_LABEL } from '@reserves';
 import {
   ShieldCheckIcon,
@@ -33,11 +33,14 @@ export function JoinPanel({ wallet, onConnect, onNavigate, addToast }: JoinPanel
   const [feedbackSubmitted, setFeedbackSubmitted] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('por_tester_feedback');
-    if (saved) {
-      setFeedbackSubmitted(true);
+    if (wallet?.address) {
+      const saved = localStorage.getItem(`por_tester_feedback_${wallet.address}`);
+      setFeedbackSubmitted(!!saved);
+    } else {
+      const saved = localStorage.getItem('por_tester_feedback');
+      setFeedbackSubmitted(!!saved);
     }
-  }, []);
+  }, [wallet?.address]);
 
   const handleConnect = async () => {
     setConnecting(true);
@@ -72,6 +75,9 @@ export function JoinPanel({ wallet, onConnect, onNavigate, addToast }: JoinPanel
       timestamp: new Date().toISOString(),
     };
 
+    if (wallet?.address) {
+      localStorage.setItem(`por_tester_feedback_${wallet.address}`, JSON.stringify(payload));
+    }
     localStorage.setItem('por_tester_feedback', JSON.stringify(payload));
     setFeedbackSubmitted(true);
     addToast?.('Thank you! Your feedback has been recorded.', 'success');

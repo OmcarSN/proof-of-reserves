@@ -38,6 +38,9 @@ import {
   clearConnection,
   isWalletAvailable,
   inspectInjection,
+  checkWalletAccountChange,
+  onWalletAccountChange,
+  updateCachedState,
 } from './midnight/connector';
 import { isProofServerUp, PROOF_SERVER_DOCKER_CMD } from './midnight/proofServer';
 import {
@@ -222,6 +225,22 @@ export async function connectWallet(): Promise<WalletInfo> {
 export function disconnectWallet(): void {
   clearConnection();
 }
+
+/** Check if wallet active account changed in 1AM / Lace. */
+export async function refreshWallet(): Promise<WalletInfo | null> {
+  const updated = await checkWalletAccountChange();
+  if (updated) {
+    return {
+      address: updated.address,
+      coinPublicKey: updated.coinPublicKey,
+      walletName: updated.walletName,
+      networkLabel: NETWORK_LABEL,
+    };
+  }
+  return null;
+}
+
+export { checkWalletAccountChange, onWalletAccountChange };
 
 // ─────────────────────────────────────────────────────────────────────────
 // Diagnostics (ported from the proven ProofAudit submit path) — turn opaque,
@@ -529,6 +548,9 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
 
   // ── 5. Resolve the shielded coin + encryption public keys. ──
   const { state: freshState, raw: rawState } = await readWalletState(walletApiLive);
+  if (freshState.address) {
+    updateCachedState(freshState);
+  }
   let coinPublicKey = freshState.coinPublicKey || conn.state.coinPublicKey || '';
   let encryptionPublicKey = freshState.encryptionPublicKey || conn.state.encryptionPublicKey || '';
   let keyDebug = 'from-state';
@@ -541,6 +563,12 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
     } catch (e: any) {
       keyDebug = `derive-failed: ${e?.message ?? String(e)}`;
     }
+  }
+  if (coinPublicKey || encryptionPublicKey) {
+    updateCachedState({
+      coinPublicKey,
+      encryptionPublicKey,
+    });
   }
   if (!coinPublicKey || !encryptionPublicKey) {
     if (keyDebug.toLowerCase().includes('lock')) {

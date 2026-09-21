@@ -11,9 +11,17 @@ declare module '@reserves' {
     walletName: string;
     networkLabel: string;
   }
+  export interface AccountChangeInfo {
+    address: string;
+    coinPublicKey: string;
+    walletName: string;
+  }
   export function connectWallet(): Promise<WalletInfo>;
   export function disconnectWallet(): void;
   export function isWalletAvailable(): boolean;
+  export function checkWalletAccountChange(): Promise<AccountChangeInfo | null>;
+  export function onWalletAccountChange(listener: (info: AccountChangeInfo) => void): () => void;
+  export function refreshWallet(): Promise<WalletInfo | null>;
 
   // ── Attest ──
   export interface AttestParams {

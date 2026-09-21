@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import {
   callAttest,
   isProofServerUp,
@@ -52,6 +52,24 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
   const [errorMsg, setErrorMsg] = useState('');
   const [result, setResult] = useState<AttestResult | null>(null);
   const [provingStep, setProvingStep] = useState(1);
+
+  // When active wallet changes in 1AM / Lace, reset any error/success state so custodian can immediately submit a new transaction
+  const prevAddressRef = useRef<string | undefined>(wallet?.address);
+  useEffect(() => {
+    if (
+      prevAddressRef.current &&
+      wallet?.address &&
+      prevAddressRef.current.toLowerCase() !== wallet.address.toLowerCase()
+    ) {
+      if (phase === 'error' || phase === 'success') {
+        setPhase('idle');
+        setErrorMsg('');
+        setResult(null);
+        setProvingStep(1);
+      }
+    }
+    prevAddressRef.current = wallet?.address;
+  }, [wallet?.address, phase]);
 
   // Parse balances
   const balances = useMemo(() => {

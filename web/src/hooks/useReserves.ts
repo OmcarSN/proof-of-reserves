@@ -56,6 +56,18 @@ if (typeof window !== 'undefined') {
       }, 2500);
     }
   });
+
+  // Re-query reserves automatically whenever the user switches active wallet
+  window.addEventListener('proofreserves:walletChanged', () => {
+    readReserves()
+      .then((fresh) => {
+        if (fresh) {
+          cachedReserves = fresh;
+          listeners.forEach((fn) => fn(fresh));
+        }
+      })
+      .catch(() => {});
+  });
 }
 
 export function useReserves() {

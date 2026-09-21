@@ -44,7 +44,7 @@ declare global {
   }
 }
 
-const PREFERRED_KEYS = ['mnLace', 'lace', 'midnight', 'midnightLace', 'midnightWallet'];
+const PREFERRED_KEYS = ['1am', 'oneam', 'midnight1am', 'mnLace', 'lace', 'midnight', 'midnightLace', 'midnightWallet'];
 
 export interface InjectionDebug {
   hasMidnight: boolean;
@@ -139,6 +139,137 @@ export async function connectLace(): Promise<ConnectionInfo> {
   }
 }
 
+export type WalletAccountChangeListener = (info: { address: string; coinPublicKey: string; walletName: string }) => void;
+const accountListeners = new Set<WalletAccountChangeListener>();
+
+export function onWalletAccountChange(listener: WalletAccountChangeListener): () => void {
+  accountListeners.add(listener);
+  return () => {
+    accountListeners.delete(listener);
+  };
+}
+
+export function notifyAccountListeners(address: string, coinPublicKey: string, walletName: string): void {
+  for (const fn of accountListeners) {
+    try {
+      fn({ address, coinPublicKey, walletName });
+    } catch (e) {
+      console.error('[ProofReserves] onWalletAccountChange listener threw:', e);
+    }
+  }
+}
+
+export function getCachedConnection(): ConnectionInfo | null {
+  return cachedConnection;
+}
+
+export function updateCachedState(partial: Partial<WalletState>): void {
+  if (cachedConnection) {
+    cachedConnection = {
+      ...cachedConnection,
+      state: {
+        ...cachedConnection.state,
+        ...partial,
+      },
+    };
+  }
+}
+
+let isCheckingAccountChange = false;
+
+/**
+ * Check if the user switched accounts in 1AM / Lace.
+ * Inspects the current state of the active connection; if the address changed or
+ * the channel was renewed, updates the cache, notifies listeners, and returns the fresh info.
+ */
+export async function checkWalletAccountChange(): Promise<{
+  address: string;
+  coinPublicKey: string;
+  walletName: string;
+} | null> {
+  if (isCheckingAccountChange) return null;
+  isCheckingAccountChange = true;
+  try {
+    if (cachedConnection) {
+      let freshState: WalletState | null = null;
+      let needReconnect = false;
+
+      try {
+        const res = await readWalletState(cachedConnection.api);
+        if (res && res.state && res.state.address) {
+          freshState = res.state;
+        } else {
+          needReconnect = true;
+        }
+      } catch (err: any) {
+        const msg = String(err?.message ?? err).toLowerCase();
+        if (
+          msg.includes('shutdown') ||
+          msg.includes('closed') ||
+          msg.includes('channel') ||
+          msg.includes('disconnected') ||
+          msg.includes('no longer be used')
+        ) {
+          needReconnect = true;
+        }
+      }
+
+      if (needReconnect) {
+        try {
+          clearConnection();
+          const newConn = await doConnectLace();
+          cachedConnection = newConn;
+          freshState = newConn.state;
+        } catch {
+          return null;
+        }
+      }
+
+      if (freshState && freshState.address) {
+        const currentAddr = cachedConnection.state.address;
+        const addressChanged = freshState.address.toLowerCase() !== currentAddr.toLowerCase();
+        const keysFilled = !cachedConnection.state.coinPublicKey && !!freshState.coinPublicKey;
+
+        if (addressChanged || keysFilled) {
+          cachedConnection = {
+            ...cachedConnection,
+            state: freshState,
+          };
+          notifyAccountListeners(freshState.address, freshState.coinPublicKey, cachedConnection.walletName);
+          return {
+            address: freshState.address,
+            coinPublicKey: freshState.coinPublicKey,
+            walletName: cachedConnection.walletName,
+          };
+        }
+      }
+    } else {
+      const connector = chosenConnector();
+      if (connector && typeof connector.isEnabled === 'function') {
+        const enabled = await connector.isEnabled(ACTIVE_NETWORK as any).catch(() => false);
+        if (enabled) {
+          try {
+            const conn = await connectLace();
+            if (conn && conn.state.address) {
+              notifyAccountListeners(conn.state.address, conn.state.coinPublicKey, conn.walletName);
+              return {
+                address: conn.state.address,
+                coinPublicKey: conn.state.coinPublicKey,
+                walletName: conn.walletName,
+              };
+            }
+          } catch {}
+        }
+      }
+    }
+  } catch (err) {
+    console.debug('[ProofReserves] checkWalletAccountChange error:', err);
+  } finally {
+    isCheckingAccountChange = false;
+  }
+  return null;
+}
+
 /** Drop the cached wallet connection so the next connectLace() reconnects. */
 export function clearConnection(): void {
   cachedConnection = null;
@@ -216,14 +347,35 @@ async function doConnectLace(): Promise<ConnectionInfo> {
     fetchUris,
   ]);
 
-  return {
+  const walletName = connector.name || (chosenKey.toLowerCase().includes('1am') ? '1AM Wallet' : 'Midnight Lace');
+
+  const connInfo: ConnectionInfo = {
     api,
     state,
     uris,
-    walletName: connector.name || 'Midnight Lace',
+    walletName,
     apiVersion: connector.apiVersion || '1.0.0',
     connectorKey: chosenKey,
   };
+
+  try {
+    const rawState = (api as any).state$ ?? (typeof (api as any).state === 'function' ? (api as any).state() : null);
+    if (rawState && typeof rawState.subscribe === 'function') {
+      rawState.subscribe({
+        next: (val: any) => {
+          const norm = normalizeState(val);
+          if (norm.address && cachedConnection && norm.address.toLowerCase() !== cachedConnection.state.address.toLowerCase()) {
+            console.log('[ProofReserves] Active account switched in wallet (observable):', norm.address);
+            cachedConnection = { ...cachedConnection, state: norm };
+            notifyAccountListeners(norm.address, norm.coinPublicKey, cachedConnection.walletName);
+          }
+        },
+        error: () => {},
+      });
+    }
+  } catch {}
+
+  return connInfo;
 }
 
 // Field names differ across Lace / connector versions, and the shielded keys
