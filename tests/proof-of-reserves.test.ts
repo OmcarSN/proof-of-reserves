@@ -130,6 +130,25 @@ describe('Proof of Reserves — attest()', () => {
     }
   });
 
+  it('TEST 1b — attests successfully when there is only 1 customer in the tree', async () => {
+    const leaves = [{ idHash: await hashCustomerId('solo'), salt: SALT(1), balance: 500n }];
+    const tree = buildSumTree(leaves);
+    expect(tree.root.sum).toBe(500n);
+    expect(tree.topChildren.left.sum + tree.topChildren.right.sum).toBe(500n);
+    setSolventWitnesses(tree, 500n);
+
+    const { contract, context } = setupContract();
+    const res = contract.impureCircuits.attest(context, NOW);
+    const state = readState(res.context);
+
+    expect(state.solvent).toBe(true);
+    expect(state.attestationEpoch).toBe(1n);
+    expect(state.liabilitiesRoot).toEqual(tree.root.digest);
+    for (const proof of tree.proofs.values()) {
+      expect(verifyInclusion(proof, state.liabilitiesRoot)).toBe(true);
+    }
+  });
+
   it('TEST 2 — solvent flips true and epoch increments on each attestation', async () => {
     const tree = await buildSampleTree();
     setSolventWitnesses(tree, 1000n);

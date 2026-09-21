@@ -160,8 +160,9 @@ export function buildSumTree(leaves: MerkleSumLeaf[]): {
     return { root: z, topChildren: { left: z, right: z }, proofs: new Map() };
   }
 
-  // Pad to a power of two with zero leaves so the tree is balanced.
-  const target = 1 << Math.ceil(Math.log2(leafCount));
+  // Pad to a power of two of at least 2 with zero leaves so the tree is balanced
+  // and always has topChildren (left and right), satisfying the on-chain assertion.
+  const target = Math.max(2, 1 << Math.ceil(Math.log2(Math.max(1, leafCount))));
   while (nodes.length < target) nodes.push(zeroLeaf());
 
   // `proofsByLeafIndex` accumulates sibling nodes; index into the current level.

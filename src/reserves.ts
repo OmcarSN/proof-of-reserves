@@ -314,38 +314,96 @@ function describeErr(e: any, depth = 0): string {
 export function friendlyError(err: any): string {
   const raw = describeErr(err);
   const low = raw.toLowerCase();
+
+  // 1. User cancellation or rejection
   if (low.includes('reject') || low.includes('denied') || (err && err.code === 4001)) {
-    return 'You dismissed the wallet popup. Click attest again and approve the request in the wallet.';
+    return 'Transaction Cancelled: You dismissed or rejected the signature request in your wallet. Click "Attest & Publish" again when you are ready to approve.';
   }
+
+  // 2. Wallet disconnected / closed prematurely
   if (low.includes('wallet ui disconnected') || low.includes('ui disconnected')) {
-    return 'Wallet popup was closed or disconnected before approval. Click "Try Again", ensure 1AM Wallet is open and unlocked, then approve the transaction.';
+    return 'Wallet Disconnected: The wallet popup closed before the transaction could be signed. Ensure your wallet is open and unlocked, then try again.';
   }
+
+  // 3. Wallet locked
   if (low.includes('lock')) {
-    return 'Your wallet is locked. Open your wallet extension, enter your password, then try again.';
+    return 'Wallet Locked: Open your wallet extension, enter your password to unlock it, then click "Attest & Publish".';
   }
-  if (low.includes('not authorized') || low.includes('caller is not the custodian')) {
-    return 'Not authorized: The custodian secret does not match the deployed contract owner. Note: Custodian Identity on the Status screen is a public key, not the secret. Click "Paste Deployed Owner Secret" or "Fill Sample Portfolio" to use the correct secret.';
+
+  // 4. Custodian secret authorization failure
+  if (
+    low.includes('not authorized') ||
+    low.includes('caller is not the custodian') ||
+    low.includes('ownerkey')
+  ) {
+    return 'Unauthorized Custodian: The passphrase or secret key does not match the deployed contract owner. Note that Custodian Identity on the Solvency Overview is a public key, not the secret. Click "Fill Sample Portfolio" to load the valid custodian credentials.';
   }
+
+  // 5. Insolvent refusal
+  if (low.includes('insolvent') || low.includes('not solvent')) {
+    return 'Insolvent Portfolio: Total reserve assets must be greater than or equal to total customer liabilities. A zero-knowledge proof of solvency cannot be generated when liabilities exceed vault assets.';
+  }
+
+  // 6. Liabilities sum tree mismatch
+  if (low.includes('liabilities do not match') || low.includes('committed tree total')) {
+    return 'Liability Calculation Mismatch: Customer liabilities entered do not match the calculated Merkle sum tree total. Please verify the customer balances entered or click "Fill Sample Portfolio".';
+  }
+
+  // 7. Future timestamp
+  if (low.includes('future') || low.includes('attestation time')) {
+    return 'Clock Synchronization Error: Attestation timestamp is in the future compared to the Midnight blockchain block time. Please ensure your computer clock is synchronized.';
+  }
+
+  // 8. General smart contract assertion error (strip minified frames, URLs, and JSON)
   if (low.includes('assertion') || low.includes('assert')) {
-    const match = raw.match(/assertion failed[:\s]+([^\n\r]+)/i) || raw.match(/assert[^:]*:\s*([^\n\r]+)/i);
-    const detail = match && match[1] ? `: "${match[1].trim()}"` : '';
-    return `Smart contract assertion failed${detail}. Ensure your custodian secret matches the deployed contract.`;
+    const match = raw.match(/assert(?:ion failed)?(?:[:\s]+)?["']?([^@"'\n\r{]+)/i);
+    if (match && match[1]) {
+      const clean = match[1].replace(/—.*$/, '').replace(/Error:.*$/, '').trim();
+      if (clean && clean.length > 3 && !clean.includes('http')) {
+        return `Smart Contract Rejection: "${clean}". Please verify your portfolio parameters and custodian credentials.`;
+      }
+    }
+    return 'Smart contract validation rejected the attestation. Ensure your custodian secret and portfolio parameters are valid.';
   }
+
+  // 9. Fee / DUST issues
   if (
     low.includes('insufficient dust') ||
     low.includes('not enough dust') ||
     low.includes('not enough tnight') ||
     (low.includes('insufficient') && (low.includes('fee') || low.includes('gas') || low.includes('fund') || low.includes('balance')))
   ) {
-    return 'Not enough tNIGHT / DUST to pay the fee. Fund this wallet on Preprod, register NIGHT for DUST, then retry.';
+    return 'Insufficient Balance: Your wallet does not have enough test tDUST / tNIGHT to pay the network transaction fee on Midnight Preprod. Please request tokens from the faucet.';
   }
+
+  // 10. Proof server connectivity
   if (low.includes('failed proof server response') || (low.includes('econnrefused') && low.includes('6300'))) {
-    return `The local proof server isn't reachable. Start it, then retry:\n${PROOF_SERVER_DOCKER_CMD}`;
+    return `Zero-Knowledge Proof Server is offline. Please start the local proof server container:\n${PROOF_SERVER_DOCKER_CMD}`;
   }
-  if (low.includes('failed to fetch') || low.includes('networkerror')) {
-    return 'Network error reaching Midnight or the proof server. Check your connection.';
+
+  // 11. Network connectivity
+  if (low.includes('failed to fetch') || low.includes('networkerror') || low.includes('econnreset')) {
+    return 'Network Error: Unable to connect to the Midnight Preprod indexer or proof server. Please check your internet connection and try again.';
   }
-  return raw;
+
+  // 12. Fallback: sanitize any raw error by stripping URLs, stack frames, JSON dumps, and debug prefixes
+  let cleaned = raw
+    .replace(/https?:\/\/[^\s)]+/g, '')
+    .replace(/@\s*at\s+[^\s]+/g, '')
+    .replace(/\{[^}]+\}/g, '')
+    .replace(/WALLET_DEBUG\s*/g, '')
+    .replace(/attest failed at \[[^\]]+\]:\s*/g, '')
+    .replace(/Error:\s*failed assert:\s*/g, '')
+    .replace(/ContractRuntimeError:\s*/g, '')
+    .replace(/CompactError:\s*/g, '')
+    .replace(/—\s*—+/g, '—')
+    .replace(/—\s*Error:\s*/g, '— ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return cleaned.length > 5
+    ? cleaned
+    : 'Attestation failed due to a contract or network issue. Please check your parameters and try again.';
 }
 
 /**

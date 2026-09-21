@@ -413,14 +413,28 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
             Attestation Failed
           </div>
           <p>{errorMsg}</p>
-          <button
-            type="button"
-            className="btn btn--ghost btn--sm"
-            style={{ marginTop: 'var(--sp-3)' }}
-            onClick={reset}
-          >
-            Try Again
-          </button>
+          <div style={{ display: 'flex', gap: '8px', marginTop: 'var(--sp-3)', flexWrap: 'wrap' }}>
+            <button
+              type="button"
+              className="btn btn--ghost btn--sm"
+              onClick={reset}
+            >
+              Try Again
+            </button>
+            {(errorMsg.includes('Sample') || errorMsg.includes('Unauthorized') || errorMsg.includes('Mismatch')) && (
+              <button
+                type="button"
+                className="btn btn--primary btn--sm"
+                onClick={() => {
+                  reset();
+                  handleLoadDemoPreset();
+                }}
+              >
+                <SparklesIcon size={14} />
+                <span>Fill Sample Portfolio</span>
+              </button>
+            )}
+          </div>
         </div>
       )}
 
