@@ -86,7 +86,7 @@ This report summarizes **50 user feedback responses** collected via Google Forms
 
 The original feedback data is stored in:
 - **Excel File**: [`docs/ProofReserve — User Onboarding & Feedback (Responses).xlsx`](./ProofReserve%20—%20User%20Onboarding%20%26%20Feedback%20(Responses).xlsx)
-- **Google Form**: [ProofReserve Onboarding Form](YOUR_GOOGLE_FORM_LINK)
+- **Google Sheet**: [ProofReserve — User Onboarding & Feedback (Responses)](https://docs.google.com/spreadsheets/d/1fTRAkRNFGVOCrIaur0oGJCcZfjsZuolwyx4hU3ixNEg/edit?usp=sharing)
 
 ---
 
