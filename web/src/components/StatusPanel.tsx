@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useReserves } from '../hooks/useReserves';
 import { SolventStamp } from './SolventStamp';
 import { TruncatedHash } from './TruncatedHash';
-import { CONTRACT_ADDRESS } from '@reserves';
+import { CONTRACT_ADDRESS, explorerContractUrl } from '@reserves';
 import { ShieldCheckIcon, LockIcon, RefreshCwIcon, CheckCircleIcon, ArrowUpRightIcon, ShareIcon } from './Icons';
 
 interface StatusPanelProps {
@@ -364,7 +364,7 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
                   prefixLen={10}
                   suffixLen={8}
                   label="Contract Address"
-                  href={`https://explorer.preprod.midnight.network/contract/${CONTRACT_ADDRESS}`}
+                  href={explorerContractUrl(CONTRACT_ADDRESS)}
                 />
               </div>
             </div>
@@ -373,7 +373,7 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
           {/* On-Chain Action Bar: balances column height & provides immediate next steps */}
           <div className="verdict-footer-actions">
             <a
-              href={`https://explorer.preprod.midnight.network/contract/${CONTRACT_ADDRESS}`}
+              href={explorerContractUrl(CONTRACT_ADDRESS)}
               target="_blank"
               rel="noopener noreferrer"
               className="btn btn--ghost btn--sm"

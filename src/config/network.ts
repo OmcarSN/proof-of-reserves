@@ -51,7 +51,12 @@ export const CONTRACT_ADDRESS: string =
 // links fall back to copy-to-clipboard (which always works). Set
 // VITE_EXPLORER_BASE to enable clickable tx links.
 export const EXPLORER_BASE: string =
-  ((import.meta as any)?.env?.VITE_EXPLORER_BASE ?? '').trim();
+  ((import.meta as any)?.env?.VITE_EXPLORER_BASE ?? '').trim() || 'https://explorer.preprod.midnight.network';
+
+export function explorerContractUrl(address: string = CONTRACT_ADDRESS): string {
+  const base = EXPLORER_BASE || 'https://explorer.preprod.midnight.network';
+  return `${base.replace(/\/$/, '')}/contracts/${address}`;
+}
 
 export function explorerTxUrl(txId: string): string | null {
   // 'submitted' is our placeholder for a broadcast tx whose id the DUST-model

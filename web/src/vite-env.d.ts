@@ -64,6 +64,7 @@ declare module '@reserves' {
   export function isProofServerUp(timeoutMs?: number): Promise<boolean>;
   export function friendlyError(err: any): string;
   export function explorerTxUrl(txId: string): string | null;
+  export function explorerContractUrl(address?: string): string;
   export function custodianSecretHexFromPassphrase(passphrase: string): Promise<string>;
   export function custodianKeyHexFromPassphrase(passphrase: string): Promise<string>;
   export function inspectInjection(): { hasMidnight: boolean; keys: string[]; chosenKey: string | null };

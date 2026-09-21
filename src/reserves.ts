@@ -29,6 +29,7 @@ import {
   ENDPOINTS,
   NETWORK_LABEL,
   explorerTxUrl,
+  explorerContractUrl,
 } from './config/network';
 import {
   connectLace,
@@ -67,7 +68,7 @@ const CIRCUIT_ID = 'attest';
 const U64_MAX = 18446744073709551615n;
 
 // ── Re-exports so the UI needs to import ONLY this module ─────────────────
-export { NETWORK_LABEL, explorerTxUrl, isProofServerUp, PROOF_SERVER_DOCKER_CMD, isWalletAvailable };
+export { NETWORK_LABEL, explorerTxUrl, explorerContractUrl, isProofServerUp, PROOF_SERVER_DOCKER_CMD, isWalletAvailable };
 export { CONTRACT_ADDRESS };
 
 // ─────────────────────────────────────────────────────────────────────────
