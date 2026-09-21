@@ -523,47 +523,13 @@ code, .mono, .font-mono {
   box-shadow: 0 4px 16px rgba(15, 44, 35, 0.03);
 }
 
-.metric-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 6px;
-}
-
 .metric-label {
   font-size: 11px;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   color: #5C7150;
   font-weight: 700;
-  margin-bottom: 0;
-}
-
-.metric-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  padding: 1px 7px;
-  border-radius: 999px;
-  background: #E8F0DB;
-  border: 1px solid #C8D7B8;
-  color: #0F2C23;
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.metric-badge--green {
-  background: #E8F7EE;
-  border-color: #BDE4C8;
-  color: #14532D;
-}
-
-.metric-badge--live {
-  background: #E0F2FE;
-  border-color: #BAE6FD;
-  color: #0369A1;
+  margin-bottom: 4px;
 }
 
 .metric-val {

@@ -260,10 +260,7 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
       {/* Top Metric Cards (Horizontal Grid on PC/Laptop) */}
       <div className="metrics-row">
         <div className="card metric-card">
-          <div className="metric-header-row">
-            <span className="metric-label">Solvency Status</span>
-            <span className="metric-badge metric-badge--green">Verified</span>
-          </div>
+          <span className="metric-label">Solvency Status</span>
           <span className="metric-val text-teal font-mono">
             {displayData.solvent ? '100% Backed' : 'Undercollateralized'}
           </span>
@@ -271,19 +268,13 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
         </div>
 
         <div className="card metric-card">
-          <div className="metric-header-row">
-            <span className="metric-label">Attested Epoch</span>
-            <span className="metric-badge">On-Chain</span>
-          </div>
+          <span className="metric-label">Attested Epoch</span>
           <span className="metric-val font-mono">#{displayData.epoch}</span>
           <span className="metric-sub">Latest Confirmed Block</span>
         </div>
 
         <div className="card metric-card">
-          <div className="metric-header-row">
-            <span className="metric-label">Verification Time</span>
-            <span className="metric-badge metric-badge--live">Live Block Time</span>
-          </div>
+          <span className="metric-label">Verification Time</span>
           <span className="metric-val" style={{ fontSize: '1.25rem' }}>
             {rel === 'just now' ? (
               <span className="text-teal" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
@@ -300,13 +291,7 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
         </div>
 
         <div className="card metric-card">
-          <div className="metric-header-row">
-            <span className="metric-label">Network Verification</span>
-            <span className="metric-badge metric-badge--live">
-              <span className="pulse-dot pulse-dot--green" style={{ width: '6px', height: '6px' }} />
-              Live
-            </span>
-          </div>
+          <span className="metric-label">Network Verification</span>
           <span className="metric-val text-cyan font-mono" style={{ fontSize: '1.25rem' }}>
             Midnight Preprod
           </span>
