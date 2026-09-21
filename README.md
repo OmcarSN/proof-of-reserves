@@ -150,6 +150,8 @@ CI runs this suite and a full frontend typecheck + browser build on every push �
 ## Links
 
 - **Live app:** https://proof-of-reserves-delta.vercel.app
+- **Demo video:** https://youtu.be/Ts3bJMyJe9E?si=WbVsBcN-T1PHR9-q
+- **User feedback (Google Sheet):** https://docs.google.com/spreadsheets/d/1fTRAkRNFGVOCrIaur0oGJCcZfjsZuolwyx4hU3ixNEg/edit?usp=sharing
 - **Project X (Twitter):** https://x.com/cocqodao
 
 ---
@@ -164,11 +166,12 @@ This project is submitted for **Level 5 — Full Moon** of the Midnight "New Moo
 |---|---|---|
 | **Public GitHub repo** | ✅ | [OmcarSN/proof-of-reserves](https://github.com/OmcarSN/proof-of-reserves) |
 | **Live demo** | ✅ | [proof-of-reserves-delta.vercel.app](https://proof-of-reserves-delta.vercel.app) |
+| **Demo video** | ✅ | [YouTube Demo](https://youtu.be/Ts3bJMyJe9E?si=WbVsBcN-T1PHR9-q) |
 | **50 Preprod user wallets** | ✅ | [docs/PREPROD_USERS.md](docs/PREPROD_USERS.md) |
+| **User feedback (Google Sheet)** | ✅ | [Google Sheet](https://docs.google.com/spreadsheets/d/1fTRAkRNFGVOCrIaur0oGJCcZfjsZuolwyx4hU3ixNEg/edit?usp=sharing) |
 | **Feedback loop documented** | ✅ | [docs/FEEDBACK.md](docs/FEEDBACK.md) |
 | **Updated documentation** | ✅ | See docs/ directory |
 | **20+ meaningful commits** | ✅ | 30+ commits |
-| **Demo video** | ✅ | *Link TBD* |
 
 ### Documentation
 
