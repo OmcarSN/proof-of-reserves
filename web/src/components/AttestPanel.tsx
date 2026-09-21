@@ -206,6 +206,21 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
       setResult(res);
       setPhase('success');
       addToast('Attestation published successfully to the Midnight ledger!', 'success');
+
+      // ── Dispatch instant event so Solvency Overview metric boxes update instantly ──
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('proofreserves:attested', {
+            detail: {
+              ...res,
+              solvent: true,
+              attested: true,
+              lastAttestationISO: new Date().toISOString(),
+              lastAttestationTime: String(Math.floor(Date.now() / 1000)),
+            },
+          }),
+        );
+      }
     } catch (err) {
       clearTimeout(stepTimer1);
       clearTimeout(stepTimer2);

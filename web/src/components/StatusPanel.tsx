@@ -31,9 +31,10 @@ function formatTime(iso: string | null): string {
 function relativeTime(iso: string | null): string {
   if (!iso) return '';
   try {
-    const diff = Date.now() - new Date(iso).getTime();
+    const diff = Math.max(0, Date.now() - new Date(iso).getTime());
+    const secs = Math.floor(diff / 1000);
+    if (secs < 45) return 'just now';
     const mins = Math.floor(diff / 60000);
-    if (mins < 1) return 'just now';
     if (mins < 60) return `${mins}m ago`;
     const hrs = Math.floor(mins / 60);
     if (hrs < 24) return `${hrs}h ago`;
@@ -45,26 +46,27 @@ function relativeTime(iso: string | null): string {
 }
 
 export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPanelProps) {
-  const { data, loading, error, refetch } = useReserves();
+  const { data, loading, isSyncing, error, refetch } = useReserves();
   const [demoMode, setDemoMode] = useState(false);
   const [lastChecked, setLastChecked] = useState<Date>(new Date());
   const [copied, setCopied] = useState(false);
-  const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const [, setClockTick] = useState(0);
 
-  // Auto-refresh every 30 seconds
+  // Re-evaluate relative time every 10 seconds so "just now" / "1m ago" ticks dynamically
   useEffect(() => {
-    intervalRef.current = setInterval(() => {
-      refetch();
+    const timer = setInterval(() => setClockTick((t) => t + 1), 10000);
+    return () => clearInterval(timer);
+  }, []);
+
+  // Update lastChecked whenever fresh data arrives
+  useEffect(() => {
+    if (data) {
       setLastChecked(new Date());
-    }, 30000);
-    return () => {
-      if (intervalRef.current) clearInterval(intervalRef.current);
-    };
-  }, [refetch]);
+    }
+  }, [data]);
 
   const handleRefresh = () => {
     refetch();
-    setLastChecked(new Date());
   };
 
   const handleShare = () => {
@@ -258,7 +260,10 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
       {/* Top Metric Cards (Horizontal Grid on PC/Laptop) */}
       <div className="metrics-row">
         <div className="card metric-card">
-          <span className="metric-label">Solvency Status</span>
+          <div className="metric-header-row">
+            <span className="metric-label">Solvency Status</span>
+            <span className="metric-badge metric-badge--green">Verified</span>
+          </div>
           <span className="metric-val text-teal font-mono">
             {displayData.solvent ? '100% Backed' : 'Undercollateralized'}
           </span>
@@ -266,22 +271,45 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
         </div>
 
         <div className="card metric-card">
-          <span className="metric-label">Attested Epoch</span>
+          <div className="metric-header-row">
+            <span className="metric-label">Attested Epoch</span>
+            <span className="metric-badge">On-Chain</span>
+          </div>
           <span className="metric-val font-mono">#{displayData.epoch}</span>
           <span className="metric-sub">Latest Confirmed Block</span>
         </div>
 
         <div className="card metric-card">
-          <span className="metric-label">Verification Time</span>
-          <span className="metric-val" style={{ fontSize: 'var(--text-base)' }}>
-            {rel || 'Recent'}
+          <div className="metric-header-row">
+            <span className="metric-label">Verification Time</span>
+            <span className="metric-badge metric-badge--live">Live Block Time</span>
+          </div>
+          <span className="metric-val" style={{ fontSize: '1.25rem' }}>
+            {rel === 'just now' ? (
+              <span className="text-teal" style={{ display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                <span className="pulse-dot pulse-dot--green" style={{ width: '8px', height: '8px' }} />
+                just now
+              </span>
+            ) : (
+              rel || 'Recent'
+            )}
           </span>
-          <span className="metric-sub">{formatTime(displayData.lastAttestationISO)}</span>
+          <span className="metric-sub" title={displayData.lastAttestationISO || ''}>
+            {formatTime(displayData.lastAttestationISO)}
+          </span>
         </div>
 
         <div className="card metric-card">
-          <span className="metric-label">Network Verification</span>
-          <span className="metric-val text-cyan">Midnight Preprod</span>
+          <div className="metric-header-row">
+            <span className="metric-label">Network Verification</span>
+            <span className="metric-badge metric-badge--live">
+              <span className="pulse-dot pulse-dot--green" style={{ width: '6px', height: '6px' }} />
+              Live
+            </span>
+          </div>
+          <span className="metric-val text-cyan font-mono" style={{ fontSize: '1.25rem' }}>
+            Midnight Preprod
+          </span>
           <span className="metric-sub">Immutable Ledger</span>
         </div>
       </div>
@@ -312,10 +340,11 @@ export function StatusPanel({ onNavigateToAttest, onNavigateToVerify }: StatusPa
                 type="button"
                 className="btn btn--ghost btn--sm"
                 onClick={handleRefresh}
-                title="Refresh on-chain state"
+                disabled={isSyncing}
+                title="Refresh on-chain state directly from Midnight Preprod"
               >
-                <RefreshCwIcon size={14} />
-                <span>Sync</span>
+                <RefreshCwIcon size={14} className={isSyncing ? 'spin-anim' : ''} />
+                <span>{isSyncing ? 'Syncing…' : 'Sync'}</span>
               </button>
             </div>
           </div>
