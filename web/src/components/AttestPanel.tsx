@@ -54,23 +54,43 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
   const [result, setResult] = useState<AttestResult | null>(null);
   const [provingStep, setProvingStep] = useState(1);
 
-  // When active wallet changes in 1AM / Lace, reset any error/success state so custodian can immediately submit a new transaction
-  const prevAddressRef = useRef<string | undefined>(wallet?.address);
+  // Track last connected wallet address to detect disconnects and wallet switches
+  const lastAddressRef = useRef<string | null>(wallet?.address || null);
+
+  const resetFormState = useCallback(() => {
+    setPassphrase('');
+    setCustodianSecretHex('');
+    setShowAdvancedSecret(false);
+    setTotalAssets('');
+    setBalanceInputs(['', '', '', '']);
+    setPasteText('');
+    setPasteMode(false);
+    setPhase('idle');
+    setErrorMsg('');
+    setResult(null);
+    setProvingStep(1);
+  }, []);
+
   useEffect(() => {
-    if (
-      prevAddressRef.current &&
-      wallet?.address &&
-      prevAddressRef.current.toLowerCase() !== wallet.address.toLowerCase()
-    ) {
-      if (phase === 'error' || phase === 'success') {
-        setPhase('idle');
-        setErrorMsg('');
-        setResult(null);
-        setProvingStep(1);
-      }
+    const currentAddr = wallet?.address || null;
+    const prevAddr = lastAddressRef.current;
+
+    // 1. If wallet was disconnected
+    if (prevAddr && !currentAddr) {
+      resetFormState();
     }
-    prevAddressRef.current = wallet?.address;
-  }, [wallet?.address, phase]);
+    // 2. If a new wallet connected, or switched from Address A to Address B
+    else if (currentAddr && (!prevAddr || currentAddr.toLowerCase() !== prevAddr.toLowerCase())) {
+      resetFormState();
+      const shortAddr =
+        currentAddr.length >= 10
+          ? `${currentAddr.slice(0, 6)}…${currentAddr.slice(-4)}`
+          : currentAddr;
+      addToast(`Connected wallet ${shortAddr} — form refreshed for new transaction`, 'info');
+    }
+
+    lastAddressRef.current = currentAddr;
+  }, [wallet?.address, resetFormState, addToast]);
 
   // Parse balances
   const balances = useMemo(() => {

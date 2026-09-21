@@ -57,8 +57,8 @@ if (typeof window !== 'undefined') {
     }
   });
 
-  // Re-query reserves automatically whenever the user switches active wallet
-  window.addEventListener('proofreserves:walletChanged', () => {
+  // Re-query reserves automatically whenever the user connects, disconnects, or switches wallet
+  const refreshOnChain = () => {
     readReserves()
       .then((fresh) => {
         if (fresh) {
@@ -67,7 +67,11 @@ if (typeof window !== 'undefined') {
         }
       })
       .catch(() => {});
-  });
+  };
+
+  window.addEventListener('proofreserves:walletChanged', refreshOnChain);
+  window.addEventListener('proofreserves:walletConnected', refreshOnChain);
+  window.addEventListener('proofreserves:walletDisconnected', refreshOnChain);
 }
 
 export function useReserves() {

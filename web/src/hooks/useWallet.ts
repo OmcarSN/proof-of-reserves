@@ -27,6 +27,11 @@ export function useWallet() {
       try {
         sessionStorage.setItem(SESSION_STORAGE_KEY, '1');
       } catch {}
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(
+          new CustomEvent('proofreserves:walletConnected', { detail: info }),
+        );
+      }
       return info;
     } catch (err) {
       const msg = friendlyError(err);
@@ -44,6 +49,9 @@ export function useWallet() {
     try {
       sessionStorage.removeItem(SESSION_STORAGE_KEY);
     } catch {}
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('proofreserves:walletDisconnected'));
+    }
   }, []);
 
   const refresh = useCallback(async () => {
