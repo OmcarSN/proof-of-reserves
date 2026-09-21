@@ -158,13 +158,15 @@ export default function App() {
       {/* ── Main Application Workspace ── */}
       <main className="app-main">
         <div className="app-content">
-          {/* Loops House Style Hero Banner */}
-          <div className="hero-banner">
-            <h1 className="hero-headline">THE ZERO-KNOWLEDGE PROTOCOL FOR VERIFIABLE SOLVENCY</h1>
-            <p className="hero-subtext">
-              Cryptographically prove 100% reserve backing while keeping every customer balance completely confidential.
-            </p>
-          </div>
+          {/* Loops House Style Hero Banner — prominent on Solvency Overview */}
+          {activeTab === 'status' && (
+            <div className="hero-banner">
+              <h1 className="hero-headline">THE ZERO-KNOWLEDGE PROTOCOL FOR VERIFIABLE SOLVENCY</h1>
+              <p className="hero-subtext">
+                Cryptographically prove 100% reserve backing while keeping every customer balance completely confidential.
+              </p>
+            </div>
+          )}
 
           {activeTab === 'status' && (
             <StatusPanel

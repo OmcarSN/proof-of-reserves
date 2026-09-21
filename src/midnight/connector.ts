@@ -407,8 +407,14 @@ const ENC_KEY_PATHS = [
 const ADDRESS_PATHS = [
   'address',
   'bech32Address',
+  'shieldedAddress',
   'unshieldedAddress',
+  'addresses.0',
+  'shieldedAddresses.0',
+  'unshieldedAddresses.0',
   'addressLegacy',
+  'account.address',
+  'account.shieldedAddress',
   'publicKeys.coinPublicKey',
 ];
 
@@ -482,7 +488,23 @@ export async function readWalletState(api: any): Promise<{ state: WalletState; r
     raw = api;
   }
 
-  return { raw, state: normalizeState(raw) };
+  const norm = normalizeState(raw);
+  if (!norm.address && api) {
+    try {
+      if (typeof api.getShieldedAddress === 'function') {
+        const a = await api.getShieldedAddress();
+        const str = typeof a === 'string' ? a : a?.address ?? a?.bech32 ?? a?.shieldedAddress ?? '';
+        if (str) norm.address = str;
+      } else if (typeof api.getShieldedAddresses === 'function') {
+        const arr = await api.getShieldedAddresses();
+        const first = Array.isArray(arr) ? arr[0] : arr;
+        const str = typeof first === 'string' ? first : first?.address ?? first?.bech32 ?? first?.shieldedAddress ?? '';
+        if (str) norm.address = str;
+      }
+    } catch {}
+  }
+
+  return { raw, state: norm };
 }
 
 async function extractWalletState(api: any): Promise<WalletState> {
