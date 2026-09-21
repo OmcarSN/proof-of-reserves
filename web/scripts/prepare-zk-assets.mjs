@@ -25,17 +25,18 @@ const src = {
   zkir: path.join(managed, 'zkir'),
 };
 
-if (!existsSync(src.keys) || !existsSync(src.zkir)) {
+if (existsSync(src.keys) && existsSync(src.zkir)) {
+  mkdirSync(dest, { recursive: true });
+  cpSync(src.keys, path.join(dest, 'keys'), { recursive: true });
+  cpSync(src.zkir, path.join(dest, 'zkir'), { recursive: true });
+  console.log(`✓ Copied ZK keys + zkir → ${path.relative(webRoot, dest)}/`);
+  console.log('  Served at /zk (matches ZK_CONFIG_BASE in src/midnight/circuits.ts).');
+} else if (existsSync(path.join(dest, 'keys')) && existsSync(path.join(dest, 'zkir'))) {
+  console.log(`✓ Pre-packaged ZK assets found in ${path.relative(webRoot, dest)}/. Ready for production.`);
+} else {
   console.error(
-    `✗ Compiled ZK assets not found under ${managed}.\n` +
+    `✗ Compiled ZK assets not found under ${managed} or ${dest}.\n` +
       `  Compile the contract first (npm run compile in the repo root).`,
   );
   process.exit(1);
 }
-
-mkdirSync(dest, { recursive: true });
-cpSync(src.keys, path.join(dest, 'keys'), { recursive: true });
-cpSync(src.zkir, path.join(dest, 'zkir'), { recursive: true });
-
-console.log(`✓ Copied ZK keys + zkir → ${path.relative(webRoot, dest)}/`);
-console.log('  Served at /zk (matches ZK_CONFIG_BASE in src/midnight/circuits.ts).');
