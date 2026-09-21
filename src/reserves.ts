@@ -330,6 +330,20 @@ export function friendlyError(err: any): string {
     return 'Wallet Locked: Open your wallet extension, enter your password to unlock it, then click "Attest & Publish".';
   }
 
+  // 3b. 1AM / Lace Wallet is syncing
+  if (
+    low.includes('wallet is syncing') ||
+    low.includes('sync to finish') ||
+    (low.includes('sync') && (low.includes('1am') || low.includes('keys unresolved') || low.includes('derive-failed')))
+  ) {
+    return '1AM Wallet is Synchronizing: Your wallet extension is currently syncing state with the Midnight Preprod blockchain. Please open the 1AM Wallet extension from your browser toolbar, wait a few moments until the sync spinner completes, then click "Try Again".';
+  }
+
+  // 3c. Keys unresolved
+  if (low.includes('keys unresolved') || low.includes('derive-failed')) {
+    return 'Wallet Keys Unavailable: Could not retrieve public keys from your connected wallet. Please ensure 1AM Wallet is unlocked and selected to the Midnight Preprod network, then try again.';
+  }
+
   // 4. Custodian secret authorization failure
   if (
     low.includes('not authorized') ||
@@ -388,10 +402,14 @@ export function friendlyError(err: any): string {
 
   // 12. Fallback: sanitize any raw error by stripping URLs, stack frames, JSON dumps, and debug prefixes
   let cleaned = raw
+    .replace(/^Error:\s*/i, '')
+    .replace(/WALLET_DEBUG\s*/gi, '')
+    .replace(/keys unresolved.*$/i, 'Could not resolve wallet public keys. Please ensure your wallet is open, unlocked, and finished syncing.')
+    .replace(/\[derive-failed:[^\]]*\]/gi, '')
+    .replace(/shape=\s*\([^\)]*\)/gi, '')
     .replace(/https?:\/\/[^\s)]+/g, '')
     .replace(/@\s*at\s+[^\s]+/g, '')
     .replace(/\{[^}]+\}/g, '')
-    .replace(/WALLET_DEBUG\s*/g, '')
     .replace(/attest failed at \[[^\]]+\]:\s*/g, '')
     .replace(/Error:\s*failed assert:\s*/g, '')
     .replace(/ContractRuntimeError:\s*/g, '')
@@ -526,7 +544,10 @@ export async function callAttest(params: AttestParams): Promise<AttestResult> {
   }
   if (!coinPublicKey || !encryptionPublicKey) {
     if (keyDebug.toLowerCase().includes('lock')) {
-      throw new Error('Your Lace wallet is locked. Unlock it in the extension, then click attest again.');
+      throw new Error('Your wallet is locked. Unlock it in the extension, then click attest again.');
+    }
+    if (keyDebug.toLowerCase().includes('sync')) {
+      throw new Error('1AM Wallet is synchronizing with Midnight Preprod. Please open 1AM Wallet from your browser toolbar, wait a few seconds for sync to complete, and click Try Again.');
     }
     throw new Error(`WALLET_DEBUG keys unresolved coin:${coinPublicKey.length} enc:${encryptionPublicKey.length} [${keyDebug}] shape=${describeShape(rawState)}`);
   }
