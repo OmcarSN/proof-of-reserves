@@ -12,7 +12,7 @@ A crypto custodian proves it holds enough assets to cover every customer — wit
 
 ---
 
-## The problem
+## The Problem
 
 An exchange or fund wants to prove one thing to the world:
 
@@ -28,7 +28,7 @@ The public sees only:
 
 Every real number — total assets, total liabilities, and each customer's balance — stays on the custodian's machine and never touches the chain.
 
-## How the privacy works
+## How the Privacy Works
 
 The custodian builds a **Merkle _sum_ tree** off-chain. Each leaf is a commitment to one customer's balance; each internal node binds its children's **hashes and their summed balances**. The zero-knowledge circuit then checks only the very top of that tree, in a single hash:
 
@@ -43,7 +43,7 @@ Two guarantees fall out of this:
 - **Solvency is enforced by the circuit.** The proof cannot be generated unless assets really do cover liabilities.
 - **Completeness is enforced by customers.** Each customer verifies their own balance is inside `liabilitiesRoot` from their own browser. A custodian who understates liabilities must either drop a customer (their inclusion proof fails) or lie about a subtree sum (the sums stop adding up to the root). Either way, the lie is detectable and the honest customer catches it.
 
-### What is public vs private
+### What is Public vs Private
 
 | On-chain (public) | Off-chain (never disclosed) |
 |---|---|
@@ -53,7 +53,7 @@ Two guarantees fall out of this:
 | `lastAttestationTime` — bound to block time | The custodian secret |
 | `custodianKey` — hash of the custodian's secret (their identity) | Customer identities and addresses |
 
-## Three roles, three screens
+## Three Roles, Three Screens
 
 | Role | What they do | Screen |
 |------|--------------|--------|
@@ -68,7 +68,7 @@ Two guarantees fall out of this:
 ```
 proof-of-reserves/
 ├── contracts/proof-of-reserves.compact   Compact ZK contract (the circuit + ledger)
-├── managed/                              Compiled contract + proving/verifier keys (committed)
+├── managed/                              Compiled contract + proving/verifier keys
 ├── src/
 │   ├── reserves.ts                       The single public API the frontend calls
 │   ├── midnight/                         Wallet, providers, proof-server plumbing
@@ -76,14 +76,15 @@ proof-of-reserves/
 │   └── config/network.ts                 Preprod endpoints + live contract address
 ├── web/                                  React + Vite frontend (imports only @reserves)
 ├── deploy/                               Deploy tooling (owner-run; secrets never committed)
-└── tests/proof-of-reserves.test.ts       8 contract tests (solvency, privacy, auth, freshness)
+├── tests/proof-of-reserves.test.ts       8 contract tests (solvency, privacy, auth, freshness)
+└── docs/                                 User guide, API reference, feedback, onboarding
 ```
 
 **One rule holds the design together:** the frontend imports **only** from `src/reserves.ts`. That module is the single safe door to the blockchain — it hides the private data (balances, the custodian secret) so the UI physically cannot leak it. The `@reserves` path alias enforces this in every component.
 
 The contract exposes one circuit, `attest(now)`, guarded by a hash-based owner check so only the custodian who holds the registered secret can publish. See [docs/MIDNIGHT_NOTES.md](docs/MIDNIGHT_NOTES.md) for the design notes and the Midnight-specific patterns used.
 
-## Run it locally
+## Run It Locally
 
 **Prerequisites**
 
@@ -133,7 +134,7 @@ Eight tests run the Compact circuit in-process (no network, no proof server) and
 
 CI runs this suite and a full frontend typecheck + browser build on every push — see the badge above.
 
-## Tech stack
+## Tech Stack
 
 - **Midnight** Compact language + zero-knowledge proofs, on the **Preprod** testnet
 - **TypeScript** for the contract logic, Merkle sum tree, and the `reserves.ts` API
@@ -170,18 +171,19 @@ This project is submitted for **Level 5 — Full Moon** of the Midnight "New Moo
 | **50 Preprod user wallets** | ✅ | [docs/PREPROD_USERS.md](docs/PREPROD_USERS.md) |
 | **User feedback (Google Sheet)** | ✅ | [Google Sheet](https://docs.google.com/spreadsheets/d/1fTRAkRNFGVOCrIaur0oGJCcZfjsZuolwyx4hU3ixNEg/edit?usp=sharing) |
 | **Feedback loop documented** | ✅ | [docs/FEEDBACK.md](docs/FEEDBACK.md) |
-| **Updated documentation** | ✅ | See docs/ directory |
-| **20+ meaningful commits** | ✅ | 30+ commits |
+| **Updated documentation** | ✅ | [docs/](docs/) — 6 documents |
+| **20+ meaningful commits** | ✅ | 70+ commits |
 
 ### Documentation
 
-- [**User Guide**](docs/USER_GUIDE.md) — How to use ProofReserves for each role (public, customer, custodian)
-- [**API Reference**](docs/API_REFERENCE.md) — Developer reference for `reserves.ts` functions
-- [**Onboarding Guide**](docs/ONBOARDING.md) — Step-by-step instructions for new Preprod testers
-- [**Feedback Documentation**](docs/FEEDBACK.md) — Feedback methodology, results, and changes made
-- [**Preprod User Registry**](docs/PREPROD_USERS.md) — Verified wallet addresses of Preprod testers
-- [**Midnight Design Notes**](docs/MIDNIGHT_NOTES.md) — ZK circuit design decisions and Compact patterns
-- [**Frontend Handoff**](FRONTEND_HANDOFF.md) — Technical specification for the React frontend
+| Document | Description |
+|---|---|
+| [User Guide](docs/USER_GUIDE.md) | How to use ProofReserves for each role (public, customer, custodian) |
+| [API Reference](docs/API_REFERENCE.md) | Developer reference for `reserves.ts` functions |
+| [Onboarding Guide](docs/ONBOARDING.md) | Step-by-step instructions for new Preprod testers |
+| [Feedback Report](docs/FEEDBACK.md) | Feedback methodology, results, and changes made |
+| [Preprod User Registry](docs/PREPROD_USERS.md) | 50 verified wallet addresses of Preprod testers |
+| [Midnight Design Notes](docs/MIDNIGHT_NOTES.md) | ZK circuit design decisions and Compact patterns |
 
 ### Quick Start for Testers
 
