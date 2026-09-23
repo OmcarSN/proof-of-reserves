@@ -8,7 +8,7 @@ This module serves as the single safe door to blockchain interaction. All return
 ## Wallet Functions
 
 ### `connectWallet()`
-Prompts the user to connect their Lace wallet.
+Prompts the user to connect their 1AM wallet.
 - **Returns**: `Promise<WalletInfo>`
 
 ### `disconnectWallet()`
@@ -16,7 +16,7 @@ Disconnects the currently connected wallet.
 - **Returns**: `void`
 
 ### `isWalletAvailable()`
-Checks if the Lace wallet extension is installed and available.
+Checks if the 1AM wallet extension is installed and available.
 - **Returns**: `boolean`
 
 ### WalletInfo Interface
@@ -112,7 +112,7 @@ interface CustomerProof {
 
 ## Error Handling
 
-Always wrap `callAttest` and other blockchain interactions in `try/catch` blocks. The Midnight network and Lace wallet can throw complex errors. 
+Always wrap `callAttest` and other blockchain interactions in `try/catch` blocks. The Midnight network and wallet can throw complex errors. 
 
 Use the `friendlyError()` utility to convert raw exceptions into user-friendly messages suitable for UI display.
 

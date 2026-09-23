@@ -52,7 +52,7 @@ An inclusion proof is a small piece of data (in JSON format) that links your ind
 Custodians use the Attest screen to publish zero-knowledge proofs of their reserves to the blockchain.
 
 ### Prerequisites
-- **Lace wallet**: Configured for Midnight Preprod with some tDUST.
+- **1AM wallet**: Configured for Midnight Preprod with some tDUST.
 - **Proof Server**: Running locally to generate zero-knowledge proofs.
 - **Custodian Secret**: The 64-hex secret key used to deploy the contract.
 
@@ -63,7 +63,7 @@ docker run -d -p 6300:6300 midnightntwrk/proof-server:8.1.0
 ```
 
 ### Step-by-step attestation flow
-1. Connect your Lace wallet.
+1. Connect your 1AM wallet.
 2. Ensure the local proof server is running.
 3. Enter your Custodian Secret. **Important**: The deployed contract uses a raw 64-hex secret, not a passphrase.
 4. Enter your Total Assets (the on-chain or verifiable assets you hold).
@@ -87,7 +87,7 @@ ProofReserves is deployed on the Midnight Preprod network.
 
 ### Do I need cryptocurrency?
 - **Public / Customers**: No. Viewing the status or verifying a proof requires no wallet or cryptocurrency.
-- **Custodians**: Yes. You need a Lace wallet with tDUST (test token) to pay for transaction fees when publishing an attestation.
+- **Custodians**: Yes. You need a 1AM wallet with tDUST (test token) to pay for transaction fees when publishing an attestation.
 
 ### What is tDUST?
 tDUST is the testnet token used on the Midnight Preprod network for transaction fees.

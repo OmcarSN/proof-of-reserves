@@ -90,7 +90,7 @@ The contract exposes one circuit, `attest(now)`, guarded by a hash-based owner c
 
 - Node.js 22+
 - Docker (for the local proof server)
-- The [Lace wallet](https://www.lace.io/) browser extension, set to **Preprod**, with a funded account (needed only to *publish* an attestation; reads and the customer self-check need neither)
+- A Midnight-compatible wallet browser extension (e.g. **1AM Wallet**), set to **Preprod**, with a funded account (needed only to *publish* an attestation; reads and the customer self-check need neither)
 
 **1 — Start the proof server** (generates the zero-knowledge proof locally):
 
@@ -139,7 +139,7 @@ CI runs this suite and a full frontend typecheck + browser build on every push �
 - **Midnight** Compact language + zero-knowledge proofs, on the **Preprod** testnet
 - **TypeScript** for the contract logic, Merkle sum tree, and the `reserves.ts` API
 - **React + Vite** frontend, wasm + top-level-await, deployable on Vercel (`vercel.json`)
-- **Lace** wallet integration (DUST fee model)
+- **1AM Wallet** integration (DUST fee model)
 - **Vitest** for the contract test suite; **GitHub Actions** for CI
 
 ## Security
@@ -187,9 +187,9 @@ This project is submitted for **Level 5 — Full Moon** of the Midnight "New Moo
 
 ### Quick Start for Testers
 
-1. Install [Lace Wallet](https://www.lace.io/) → Switch to **Preprod**
+1. Install the **1AM Wallet** browser extension → Switch to **Preprod**
 2. Visit [proof-of-reserves-delta.vercel.app](https://proof-of-reserves-delta.vercel.app)
-3. Click **Connect Lace** → Explore the dashboard
+3. Click **Connect Wallet** → Explore the dashboard
 4. Submit feedback via the **Join Network** tab
 
 ## License
