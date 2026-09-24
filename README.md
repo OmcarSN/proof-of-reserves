@@ -82,7 +82,17 @@ proof-of-reserves/
 
 **One rule holds the design together:** the frontend imports **only** from `src/reserves.ts`. That module is the single safe door to the blockchain — it hides the private data (balances, the custodian secret) so the UI physically cannot leak it. The `@reserves` path alias enforces this in every component.
 
-The contract exposes one circuit, `attest(now)`, guarded by a hash-based owner check so only the custodian who holds the registered secret can publish. See [docs/MIDNIGHT_NOTES.md](docs/MIDNIGHT_NOTES.md) for the design notes and the Midnight-specific patterns used.
+The contract exposes **five circuits** — not just attestation, but full lifecycle management:
+
+| Circuit | Purpose |
+|---------|---------|
+| `attest(now)` | Core solvency proof — proves assets ≥ liabilities without revealing amounts |
+| `rotateCustodian()` | Transfers contract control to a new secret key (key management) |
+| `revokeAttestation()` | Marks a flawed attestation as invalid (error correction) |
+| `emergencyFreeze()` | Pauses all attestations during security incidents |
+| `unfreeze()` | Resumes operations after an emergency freeze |
+
+Every circuit is guarded by a hash-based owner check so only the custodian who holds the registered secret can call them. See [docs/MIDNIGHT_NOTES.md](docs/MIDNIGHT_NOTES.md) for the design notes and the Midnight-specific patterns used.
 
 ## Run It Locally
 
@@ -121,16 +131,38 @@ Open the printed URL (default `http://localhost:5173`). The **Status** screen wo
 npm test
 ```
 
-Eight tests run the Compact circuit in-process (no network, no proof server) and cover the competition requirements plus hardening:
+Twenty tests run the Compact circuits in-process (no network, no proof server) covering all five circuits:
 
+**Core — `attest()`:**
 1. A solvent custodian attests; the published root equals both `hash(children)` and the independently-computed off-chain tree root.
 2. `solvent` flips to true and `attestationEpoch` increments on each attestation.
 3. **Privacy:** the private amounts never appear anywhere in public state.
 4. An insolvent custodian (`assets < liabilities`) is rejected.
+
+**Hardening:**
 5. Only the holder of the registered secret can attest.
-6. An attestation dated in the future is rejected.
-7. A liability total that doesn't match the committed tree is rejected.
-8. A subtree sum that overflows `Uint<64>` is rejected.
+6. An attestation dated in the future is rejected (freshness bound).
+7. A liability total that doesn't match the committed tree total is rejected.
+8. A subtree sum exceeding `Uint<64>` is rejected (overflow guard).
+
+**Key rotation — `rotateCustodian()`:**
+9. Rotation succeeds; the old secret is rejected on subsequent calls.
+10. An unauthorized caller cannot rotate keys.
+
+**Revocation — `revokeAttestation()`:**
+11. Revocation sets `solvent = false` and marks `attestationRevoked = true`.
+12. Cannot revoke when no active attestation exists.
+13. Cannot revoke an already revoked attestation.
+14. A new `attest()` clears the revocation flag.
+
+**Emergency freeze — `emergencyFreeze()` / `unfreeze()`:**
+15. Freeze blocks new attestations.
+16. Unfreeze restores the ability to attest.
+17. Double freeze is rejected.
+18. Double unfreeze is rejected.
+
+**Audit trail:**
+19. `previousRoot` tracks the prior commitment after re-attestation.
 
 CI runs this suite and a full frontend typecheck + browser build on every push — see the badge above.
 
