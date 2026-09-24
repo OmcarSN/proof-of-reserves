@@ -8,12 +8,24 @@
 //   attestationEpoch    Uint<64>   — increments on every successful attestation
 //   lastAttestationTime Uint<64>   — prover-supplied time, bound to block time
 //   custodianKey        Bytes<32>  — hash of the custodian secret (their on-chain identity)
+//   previousRoot        Bytes<32>  — root from the prior attestation (audit trail)
+//   attestationRevoked  Boolean    — custodian can mark a flawed attestation invalid
+//   custodianRotationCount Uint<64> — number of custodian key rotations
+//   frozen              Boolean    — emergency pause: blocks new attestations
 //
 // PRIVATE (witness — never leaves the prover's machine):
-//   custodianSecret()   Bytes<32>  — gates `attest` to the custodian
-//   totalAssets()       Uint<64>   — the real asset total (never disclosed)
-//   totalLiabilities()  Uint<64>   — the real liability total (never disclosed)
-//   topLeft()/topRight() MerkleSumNode — the two children of the tree root
+//   custodianSecret()      Bytes<32>      — gates every privileged operation
+//   totalAssets()          Uint<64>       — the real asset total (never disclosed)
+//   totalLiabilities()     Uint<64>       — the real liability total (never disclosed)
+//   topLeft()/topRight()   MerkleSumNode  — children of the tree root
+//   newCustodianSecret()   Bytes<32>      — new key for rotation
+//
+// CIRCUITS:
+//   attest(now)       — prove solvency + root consistency (core circuit)
+//   rotateCustodian() — hand control to a new secret key
+//   revokeAttestation() — mark current attestation as invalid
+//   emergencyFreeze() — pause all attestations
+//   unfreeze()        — resume attestations after freeze
 //
 // The core trick (see docs/MIDNIGHT_NOTES.md and README):
 //   The custodian builds a Merkle *sum* tree off-chain (leaf = commitment to a
@@ -40,17 +52,40 @@ export struct MerkleSumNode {
   sum: Uint<64>;
 }
 
+// ── Ledger (public state) ────────────────────────────────────────────
+
 export ledger solvent: Boolean;
 export ledger liabilitiesRoot: Bytes<32>;
 export ledger attestationEpoch: Uint<64>;
 export ledger lastAttestationTime: Uint<64>;
 export ledger custodianKey: Bytes<32>;
 
+// Audit trail: the root from the PREVIOUS attestation. On first attestation,
+// this is zero bytes. Enables auditors to track attestation history.
+export ledger previousRoot: Bytes<32>;
+
+// Revocation: if the custodian discovers a mistake in their data, they can
+// revoke the current attestation rather than leaving a false positive on-chain.
+export ledger attestationRevoked: Boolean;
+
+// Key rotation counter: tracks how many times the custodian's identity key has
+// been rotated. A high count signals frequent key changes (possible red flag).
+export ledger custodianRotationCount: Uint<64>;
+
+// Emergency freeze: halts ALL attestations. Use when a compromise is suspected.
+// Only the custodian can freeze and unfreeze.
+export ledger frozen: Boolean;
+
+// ── Witnesses ────────────────────────────────────────────────────────
+
 witness custodianSecret(): Bytes<32>;
 witness totalAssets(): Uint<64>;
 witness totalLiabilities(): Uint<64>;
 witness topLeft(): MerkleSumNode;
 witness topRight(): MerkleSumNode;
+witness newCustodianSecret(): Bytes<32>;
+
+// ── Identity derivation ──────────────────────────────────────────────
 
 // DApp-specific public key for the custodian (official auth pattern: hash-based
 // key, domain-separated — see docs/MIDNIGHT_NOTES.md §4). The secret never
@@ -59,18 +94,31 @@ circuit ownerKey(sk: Bytes<32>): Bytes<32> {
   return persistentHash<Vector<2, Bytes<32>>>([pad(32, "por:owner:"), sk]);
 }
 
+// ── Constructor ──────────────────────────────────────────────────────
+
 constructor() {
   solvent = disclose(false);
   liabilitiesRoot = disclose(default<Bytes<32>>);
   attestationEpoch = disclose(0 as Uint<64>);
   lastAttestationTime = disclose(0 as Uint<64>);
   custodianKey = disclose(ownerKey(custodianSecret()));
+  previousRoot = disclose(default<Bytes<32>>);
+  attestationRevoked = disclose(false);
+  custodianRotationCount = disclose(0 as Uint<64>);
+  frozen = disclose(false);
 }
 
-// The core circuit. Proves solvency + root consistency; discloses only the
-// boolean verdict, the commitment root, and freshness metadata. Amounts stay
-// in the witness.
+// ── Circuit 1: attest(now) ── core solvency proof ────────────────────
+//
+// Proves solvency + root consistency; discloses only the boolean verdict,
+// the commitment root, and freshness metadata. Amounts stay in the witness.
+// Enhanced: tracks audit trail via previousRoot, resets revocation flag,
+// and enforces the emergency freeze guard.
+
 export circuit attest(now: Uint<64>): [] {
+  // Guard: contract must not be frozen.
+  assert(disclose(frozen == false), "Contract is frozen — attestations are paused until unfrozen");
+
   // Only the custodian (prover of the registered secret) may attest.
   assert(disclose(ownerKey(custodianSecret()) == custodianKey), "Not authorized: caller is not the custodian");
 
@@ -92,9 +140,84 @@ export circuit attest(now: Uint<64>): [] {
   //    "attested" in the UI per the honesty rule, not proven.
   assert(blockTimeGte(disclose(now)), "Attestation time is in the future");
 
-  // 4) Bind the two top children into ONE root commitment.
+  // 4) Audit trail: archive the current root before overwriting it.
+  //    On first attestation previousRoot will be the zero hash.
+  previousRoot = disclose(liabilitiesRoot);
+
+  // 5) Bind the two top children into ONE root commitment.
   liabilitiesRoot = disclose(persistentHash<Vector<2, MerkleSumNode>>([left, right]));
   solvent = disclose(true);
+  attestationRevoked = disclose(false);
   attestationEpoch = disclose((attestationEpoch + 1) as Uint<64>);
   lastAttestationTime = disclose(now);
+}
+
+// ── Circuit 2: rotateCustodian() ── key management ───────────────────
+//
+// Transfers control to a new secret key. The old secret must be provided to
+// authorize the handoff. After rotation the old secret is worthless — it
+// cannot attest, revoke, or freeze. Use when:
+//   • The custodian's secret is compromised.
+//   • Organisational handover to a new team.
+//   • Periodic key hygiene.
+
+export circuit rotateCustodian(): [] {
+  // Only the current custodian can initiate rotation.
+  assert(disclose(ownerKey(custodianSecret()) == custodianKey), "Not authorized: only the current custodian can rotate keys");
+
+  // Derive and store the new on-chain identity.
+  custodianKey = disclose(ownerKey(newCustodianSecret()));
+  custodianRotationCount = disclose((custodianRotationCount + 1) as Uint<64>);
+}
+
+// ── Circuit 3: revokeAttestation() ── error correction ───────────────
+//
+// Marks the current attestation as invalid. Sets `solvent = false` and the
+// `attestationRevoked` flag. Use when the custodian discovers they attested
+// with incorrect data (wrong balances, stale CSV import, etc.). The public
+// verdict immediately flips to "not solvent" as a safety measure.
+//
+// The epoch and root are preserved so auditors can trace what was revoked.
+
+export circuit revokeAttestation(): [] {
+  // Only the custodian can revoke.
+  assert(disclose(ownerKey(custodianSecret()) == custodianKey), "Not authorized: only the custodian can revoke an attestation");
+
+  // Can only revoke an active, non-revoked attestation.
+  assert(disclose(solvent == true), "No active solvent attestation to revoke");
+  assert(disclose(attestationRevoked == false), "Attestation is already revoked");
+
+  solvent = disclose(false);
+  attestationRevoked = disclose(true);
+}
+
+// ── Circuit 4: emergencyFreeze() ── safety mechanism ─────────────────
+//
+// Immediately freezes the contract: no new attestations can be published
+// until `unfreeze()` is called. The current verdict is set to false (not
+// solvent) as a precaution. Use when:
+//   • A security breach is suspected.
+//   • The custodian needs time to audit off-chain data.
+//   • Regulatory hold / compliance investigation.
+
+export circuit emergencyFreeze(): [] {
+  assert(disclose(ownerKey(custodianSecret()) == custodianKey), "Not authorized: only the custodian can freeze the contract");
+  assert(disclose(frozen == false), "Contract is already frozen");
+
+  frozen = disclose(true);
+  solvent = disclose(false);
+}
+
+// ── Circuit 5: unfreeze() ── resume operations ───────────────────────
+//
+// Lifts the emergency freeze. The contract returns to normal operation:
+// the custodian must publish a fresh `attest()` to restore the solvent
+// verdict. Unfreeze alone does NOT restore solvency — it merely reopens
+// the door to new attestations.
+
+export circuit unfreeze(): [] {
+  assert(disclose(ownerKey(custodianSecret()) == custodianKey), "Not authorized: only the custodian can unfreeze the contract");
+  assert(disclose(frozen == true), "Contract is not frozen");
+
+  frozen = disclose(false);
 }

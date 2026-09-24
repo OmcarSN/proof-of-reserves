@@ -2,7 +2,7 @@
 // Proof of Reserves — contract tests
 // ═══════════════════════════════════════════════════════════════════════
 //
-// The four required tests (competition L1):
+// Core tests (competition L1):
 //   1. attest succeeds when assets >= liabilities; the published root equals
 //      hash(children) — and, critically, equals the root the OFF-CHAIN
 //      TypeScript Merkle sum tree computes (hash-equivalence, Phase 0 §5).
@@ -11,11 +11,20 @@
 //   3. Privacy: assets/liabilities never appear in any public output.
 //   4. Negative: attest FAILS when assets < liabilities.
 //
-// Bonus hardening tests:
+// Hardening tests:
 //   5. Only the custodian (holder of the registered secret) can attest.
 //   6. An attestation claiming a future time is rejected (freshness bound).
 //   7. A liability total that does not match the tree total is rejected.
 //   8. A subtree sum exceeding Uint<64> is rejected (overflow guard).
+//
+// Advanced feature tests:
+//   9. Custodian key rotation succeeds and old key is rejected.
+//  10. Attestation revocation sets solvent to false.
+//  11. Cannot revoke when no active attestation exists.
+//  12. Emergency freeze blocks attestations; unfreeze restores.
+//  13. Audit trail: previousRoot tracks the prior commitment.
+//  14. Attest clears a previous revocation flag.
+//  15. Double freeze / double unfreeze is rejected.
 // ═══════════════════════════════════════════════════════════════════════
 
 import { describe, it, expect, beforeEach } from 'vitest';
@@ -37,10 +46,12 @@ const BLOCK_TIME = 1_750_000_000n;
 const NOW = BLOCK_TIME; // an attestation timestamp equal to block time is "now or past"
 
 const CUSTODIAN_SECRET = Uint8Array.from({ length: 32 }, (_, i) => (i + 1) % 251);
+const NEW_CUSTODIAN_SECRET = Uint8Array.from({ length: 32 }, (_, i) => (i + 42) % 251);
 const SALT = (n: number) => Uint8Array.from({ length: 32 }, (_, i) => (i + n * 7 + 13) % 256);
 
 // ─── Configurable witnesses ─────────────────────────────────────────────
 let witnessSecret: Uint8Array = CUSTODIAN_SECRET;
+let witnessNewSecret: Uint8Array = NEW_CUSTODIAN_SECRET;
 let witnessAssets = 0n;
 let witnessLiabilities = 0n;
 let witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
@@ -52,6 +63,7 @@ const witnesses = {
   totalLiabilities: (_ctx: any): [any, bigint] => [_ctx.privateState, witnessLiabilities],
   topLeft: (_ctx: any): [any, { digest: Uint8Array; sum: bigint }] => [_ctx.privateState, witnessTopLeft],
   topRight: (_ctx: any): [any, { digest: Uint8Array; sum: bigint }] => [_ctx.privateState, witnessTopRight],
+  newCustodianSecret: (_ctx: any): [any, Uint8Array] => [_ctx.privateState, witnessNewSecret],
 };
 
 // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -97,9 +109,12 @@ function setSolventWitnesses(tree: Awaited<ReturnType<typeof buildSampleTree>>, 
 }
 
 // ═══════════════════════════════════════════════════════════════════════
+// CORE TESTS — attest()
+// ═══════════════════════════════════════════════════════════════════════
 describe('Proof of Reserves — attest()', () => {
   beforeEach(() => {
     witnessSecret = CUSTODIAN_SECRET;
+    witnessNewSecret = NEW_CUSTODIAN_SECRET;
     witnessAssets = 0n;
     witnessLiabilities = 0n;
     witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
@@ -128,6 +143,11 @@ describe('Proof of Reserves — attest()', () => {
     for (const proof of tree.proofs.values()) {
       expect(verifyInclusion(proof, state.liabilitiesRoot)).toBe(true);
     }
+
+    // New fields: revocation is cleared and previousRoot is zero (first attestation)
+    expect(state.attestationRevoked).toBe(false);
+    expect(state.frozen).toBe(false);
+    expect(state.previousRoot).toEqual(new Uint8Array(32));
   });
 
   it('TEST 1b — attests successfully when there is only 1 customer in the tree', async () => {
@@ -180,9 +200,13 @@ describe('Proof of Reserves — attest()', () => {
     // The circuit returns an empty tuple — no amounts in the return value.
     expect(res.result).toEqual([]);
 
-    // The ledger exposes exactly the five documented public fields.
+    // The ledger exposes exactly the nine documented public fields.
     expect(Object.keys(state).sort()).toEqual(
-      ['solvent', 'liabilitiesRoot', 'attestationEpoch', 'lastAttestationTime', 'custodianKey'].sort(),
+      [
+        'solvent', 'liabilitiesRoot', 'attestationEpoch', 'lastAttestationTime',
+        'custodianKey', 'previousRoot', 'attestationRevoked', 'custodianRotationCount',
+        'frozen',
+      ].sort(),
     );
 
     // The literal amounts (and the tree total) appear nowhere in the state.
@@ -206,9 +230,13 @@ describe('Proof of Reserves — attest()', () => {
   });
 });
 
+// ═══════════════════════════════════════════════════════════════════════
+// HARDENING TESTS
+// ═══════════════════════════════════════════════════════════════════════
 describe('Proof of Reserves — hardening', () => {
   beforeEach(() => {
     witnessSecret = CUSTODIAN_SECRET;
+    witnessNewSecret = NEW_CUSTODIAN_SECRET;
     witnessAssets = 0n;
     witnessLiabilities = 0n;
     witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
@@ -258,5 +286,220 @@ describe('Proof of Reserves — hardening', () => {
 
     // (2^63 + 2^63) cannot narrow back to Uint<64>: the checked cast aborts the circuit.
     expect(() => contract.impureCircuits.attest(context, NOW)).toThrow();
+  });
+});
+
+// ═══════════════════════════════════════════════════════════════════════
+// ADVANCED FEATURE TESTS — rotation, revocation, freeze
+// ═══════════════════════════════════════════════════════════════════════
+describe('Proof of Reserves — key rotation', () => {
+  beforeEach(() => {
+    witnessSecret = CUSTODIAN_SECRET;
+    witnessNewSecret = NEW_CUSTODIAN_SECRET;
+    witnessAssets = 0n;
+    witnessLiabilities = 0n;
+    witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
+    witnessTopRight = { digest: new Uint8Array(32), sum: 0n };
+  });
+
+  it('TEST 9 — custodian rotation succeeds and old key is rejected', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // Initial state: rotation count is 0
+    expect(readState(context).custodianRotationCount).toBe(0n);
+
+    // Rotate the custodian key
+    const rotRes = contract.impureCircuits.rotateCustodian(context);
+    expect(readState(rotRes.context).custodianRotationCount).toBe(1n);
+
+    // OLD secret can no longer attest
+    expect(() => contract.impureCircuits.attest(rotRes.context, NOW)).toThrow(
+      'Not authorized: caller is not the custodian',
+    );
+
+    // NEW secret CAN attest
+    witnessSecret = NEW_CUSTODIAN_SECRET;
+    const attRes = contract.impureCircuits.attest(rotRes.context, NOW);
+    expect(readState(attRes.context).solvent).toBe(true);
+    expect(readState(attRes.context).attestationEpoch).toBe(1n);
+  });
+
+  it('TEST 10 — unauthorized caller cannot rotate keys', async () => {
+    const { contract, context } = setupContract();
+
+    // Use a wrong secret
+    witnessSecret = Uint8Array.from({ length: 32 }, (_, i) => (i + 99) % 251);
+    expect(() => contract.impureCircuits.rotateCustodian(context)).toThrow(
+      'Not authorized',
+    );
+  });
+});
+
+describe('Proof of Reserves — attestation revocation', () => {
+  beforeEach(() => {
+    witnessSecret = CUSTODIAN_SECRET;
+    witnessNewSecret = NEW_CUSTODIAN_SECRET;
+    witnessAssets = 0n;
+    witnessLiabilities = 0n;
+    witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
+    witnessTopRight = { digest: new Uint8Array(32), sum: 0n };
+  });
+
+  it('TEST 11 — revocation sets solvent to false and marks as revoked', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // First attest to make it solvent
+    const attRes = contract.impureCircuits.attest(context, NOW);
+    expect(readState(attRes.context).solvent).toBe(true);
+    expect(readState(attRes.context).attestationRevoked).toBe(false);
+
+    // Revoke the attestation
+    const revRes = contract.impureCircuits.revokeAttestation(attRes.context);
+    expect(readState(revRes.context).solvent).toBe(false);
+    expect(readState(revRes.context).attestationRevoked).toBe(true);
+    // Epoch and root are preserved for audit trail
+    expect(readState(revRes.context).attestationEpoch).toBe(1n);
+  });
+
+  it('TEST 12 — cannot revoke when no active attestation exists', async () => {
+    const { contract, context } = setupContract();
+
+    // Initial state: not solvent, so nothing to revoke
+    expect(() => contract.impureCircuits.revokeAttestation(context)).toThrow(
+      'No active solvent attestation to revoke',
+    );
+  });
+
+  it('TEST 13 — cannot revoke an already revoked attestation', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // Attest, then revoke
+    const attRes = contract.impureCircuits.attest(context, NOW);
+    const revRes = contract.impureCircuits.revokeAttestation(attRes.context);
+
+    // Try to revoke again — should fail
+    expect(() => contract.impureCircuits.revokeAttestation(revRes.context)).toThrow(
+      'No active solvent attestation to revoke',
+    );
+  });
+
+  it('TEST 14 — a new attestation clears the revocation flag', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // Attest → revoke → attest again
+    const att1 = contract.impureCircuits.attest(context, NOW);
+    const rev = contract.impureCircuits.revokeAttestation(att1.context);
+    expect(readState(rev.context).attestationRevoked).toBe(true);
+
+    const att2 = contract.impureCircuits.attest(rev.context, NOW);
+    expect(readState(att2.context).solvent).toBe(true);
+    expect(readState(att2.context).attestationRevoked).toBe(false);
+    expect(readState(att2.context).attestationEpoch).toBe(2n);
+  });
+});
+
+describe('Proof of Reserves — emergency freeze', () => {
+  beforeEach(() => {
+    witnessSecret = CUSTODIAN_SECRET;
+    witnessNewSecret = NEW_CUSTODIAN_SECRET;
+    witnessAssets = 0n;
+    witnessLiabilities = 0n;
+    witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
+    witnessTopRight = { digest: new Uint8Array(32), sum: 0n };
+  });
+
+  it('TEST 15 — emergency freeze blocks attestations', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // Freeze the contract
+    const freezeRes = contract.impureCircuits.emergencyFreeze(context);
+    expect(readState(freezeRes.context).frozen).toBe(true);
+    expect(readState(freezeRes.context).solvent).toBe(false);
+
+    // Attest should fail while frozen
+    expect(() => contract.impureCircuits.attest(freezeRes.context, NOW)).toThrow(
+      'Contract is frozen — attestations are paused until unfrozen',
+    );
+  });
+
+  it('TEST 16 — unfreeze restores the ability to attest', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // Freeze → unfreeze → attest
+    const freezeRes = contract.impureCircuits.emergencyFreeze(context);
+    const unfreezeRes = contract.impureCircuits.unfreeze(freezeRes.context);
+    expect(readState(unfreezeRes.context).frozen).toBe(false);
+
+    const attRes = contract.impureCircuits.attest(unfreezeRes.context, NOW);
+    expect(readState(attRes.context).solvent).toBe(true);
+    expect(readState(attRes.context).attestationEpoch).toBe(1n);
+  });
+
+  it('TEST 17 — double freeze is rejected', async () => {
+    const { contract, context } = setupContract();
+
+    const freezeRes = contract.impureCircuits.emergencyFreeze(context);
+    expect(() => contract.impureCircuits.emergencyFreeze(freezeRes.context)).toThrow(
+      'Contract is already frozen',
+    );
+  });
+
+  it('TEST 18 — double unfreeze is rejected', async () => {
+    const { contract, context } = setupContract();
+
+    // Not frozen initially, so unfreeze should fail
+    expect(() => contract.impureCircuits.unfreeze(context)).toThrow(
+      'Contract is not frozen',
+    );
+  });
+});
+
+describe('Proof of Reserves — audit trail', () => {
+  beforeEach(() => {
+    witnessSecret = CUSTODIAN_SECRET;
+    witnessNewSecret = NEW_CUSTODIAN_SECRET;
+    witnessAssets = 0n;
+    witnessLiabilities = 0n;
+    witnessTopLeft = { digest: new Uint8Array(32), sum: 0n };
+    witnessTopRight = { digest: new Uint8Array(32), sum: 0n };
+  });
+
+  it('TEST 19 — previousRoot tracks the prior commitment after re-attestation', async () => {
+    const tree = await buildSampleTree();
+    setSolventWitnesses(tree, 1000n);
+    const { contract, context } = setupContract();
+
+    // First attestation: previousRoot is zero (no prior)
+    const att1 = contract.impureCircuits.attest(context, NOW);
+    const state1 = readState(att1.context);
+    expect(state1.previousRoot).toEqual(new Uint8Array(32)); // zero hash
+    const firstRoot = state1.liabilitiesRoot;
+
+    // Build a different tree for second attestation
+    const leaves2 = [
+      { idHash: await hashCustomerId('eve'), salt: SALT(5), balance: 500n },
+      { idHash: await hashCustomerId('frank'), salt: SALT(6), balance: 600n },
+    ];
+    const tree2 = buildSumTree(leaves2);
+    setSolventWitnesses(tree2, 1100n);
+
+    // Second attestation: previousRoot should be the first root
+    const att2 = contract.impureCircuits.attest(att1.context, NOW);
+    const state2 = readState(att2.context);
+    expect(state2.previousRoot).toEqual(firstRoot);
+    expect(state2.liabilitiesRoot).toEqual(tree2.root.digest);
+    expect(state2.attestationEpoch).toBe(2n);
   });
 });

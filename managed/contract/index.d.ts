@@ -8,14 +8,23 @@ export type Witnesses<PS> = {
   totalLiabilities(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, bigint];
   topLeft(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, MerkleSumNode];
   topRight(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, MerkleSumNode];
+  newCustodianSecret(context: __compactRuntime.WitnessContext<Ledger, PS>): [PS, Uint8Array];
 }
 
 export type ImpureCircuits<PS> = {
   attest(context: __compactRuntime.CircuitContext<PS>, now_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  rotateCustodian(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  revokeAttestation(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  emergencyFreeze(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  unfreeze(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type ProvableCircuits<PS> = {
   attest(context: __compactRuntime.CircuitContext<PS>, now_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  rotateCustodian(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  revokeAttestation(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  emergencyFreeze(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  unfreeze(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type PureCircuits = {
@@ -23,6 +32,10 @@ export type PureCircuits = {
 
 export type Circuits<PS> = {
   attest(context: __compactRuntime.CircuitContext<PS>, now_0: bigint): __compactRuntime.CircuitResults<PS, []>;
+  rotateCustodian(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  revokeAttestation(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  emergencyFreeze(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
+  unfreeze(context: __compactRuntime.CircuitContext<PS>): __compactRuntime.CircuitResults<PS, []>;
 }
 
 export type Ledger = {
@@ -31,6 +44,10 @@ export type Ledger = {
   readonly attestationEpoch: bigint;
   readonly lastAttestationTime: bigint;
   readonly custodianKey: Uint8Array;
+  readonly previousRoot: Uint8Array;
+  readonly attestationRevoked: boolean;
+  readonly custodianRotationCount: bigint;
+  readonly frozen: boolean;
 }
 
 export type ContractReferenceLocations = any;
