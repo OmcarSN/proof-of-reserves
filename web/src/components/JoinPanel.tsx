@@ -102,10 +102,6 @@ export function JoinPanel({ wallet, onConnect, onNavigate, addToast }: JoinPanel
               <span className="join-stat-value font-mono">{NETWORK_LABEL}</span>
             </div>
             <div className="join-stat">
-              <span className="join-stat-label">Community Goal</span>
-              <span className="join-stat-value">50 Preprod Testers</span>
-            </div>
-            <div className="join-stat">
               <span className="join-stat-label">Protocol Standard</span>
               <span className="join-stat-value">Zero-Knowledge Sum Tree</span>
             </div>
