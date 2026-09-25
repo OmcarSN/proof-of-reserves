@@ -199,6 +199,7 @@ export default function App() {
 
       {/* ── Global Footer ── */}
       <footer className="app-footer">
+        <div className="footer-glow-line" aria-hidden="true" />
         <div className="footer-inner">
           <div className="footer-left">
             <ProofLogo size={18} color="#0F2C23" />
@@ -206,10 +207,29 @@ export default function App() {
             <span className="footer-sep">·</span>
             <span>Zero-Knowledge Cryptographic Solvency</span>
           </div>
-          <div className="footer-right">
-            <span>Verified on Midnight Preprod</span>
+          <div className="footer-center">
+            <a href="https://github.com/OmcarSN/proof-of-reserves" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <span>GitHub</span>
+              <ArrowUpRightIcon size={11} />
+            </a>
             <span className="footer-sep">·</span>
-            <span className="text-teal font-mono">100% Client-Side Privacy Guarantee</span>
+            <a href="https://docs.midnight.network" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <span>Midnight Docs</span>
+              <ArrowUpRightIcon size={11} />
+            </a>
+            <span className="footer-sep">·</span>
+            <a href="https://x.com/cocqodao" target="_blank" rel="noopener noreferrer" className="footer-link">
+              <span>@cocqodao</span>
+              <ArrowUpRightIcon size={11} />
+            </a>
+          </div>
+          <div className="footer-right">
+            <span className="footer-network-badge">
+              <span className="pulse-dot pulse-dot--green" />
+              Midnight Preprod
+            </span>
+            <span className="footer-sep">·</span>
+            <span className="text-teal font-mono">Client-Side Privacy</span>
           </div>
         </div>
       </footer>
