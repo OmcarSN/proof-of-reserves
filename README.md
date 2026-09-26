@@ -52,6 +52,10 @@ Two guarantees fall out of this:
 | `attestationEpoch` — 1, 2, 3 … | Every individual customer balance |
 | `lastAttestationTime` — bound to block time | The custodian secret |
 | `custodianKey` — hash of the custodian's secret (their identity) | Customer identities and addresses |
+| `previousRoot` — prior attestation root (audit trail) | New custodian secret (during rotation) |
+| `attestationRevoked` — whether current attestation was revoked | |
+| `custodianRotationCount` — key rotation counter | |
+| `frozen` — emergency pause status | |
 
 ## Three Roles, Three Screens
 
@@ -76,7 +80,7 @@ proof-of-reserves/
 │   └── config/network.ts                 Preprod endpoints + live contract address
 ├── web/                                  React + Vite frontend (imports only @reserves)
 ├── deploy/                               Deploy tooling (owner-run; secrets never committed)
-├── tests/proof-of-reserves.test.ts       8 contract tests (solvency, privacy, auth, freshness)
+├── tests/proof-of-reserves.test.ts       20 contract tests (solvency, privacy, auth, rotation, freeze)
 └── docs/                                 User guide, API reference, feedback, onboarding
 ```
 
@@ -135,6 +139,7 @@ Twenty tests run the Compact circuits in-process (no network, no proof server) c
 
 **Core — `attest()`:**
 1. A solvent custodian attests; the published root equals both `hash(children)` and the independently-computed off-chain tree root.
+1b. Edge case: a single-customer tree attests correctly (degenerate tree).
 2. `solvent` flips to true and `attestationEpoch` increments on each attestation.
 3. **Privacy:** the private amounts never appear anywhere in public state.
 4. An insolvent custodian (`assets < liabilities`) is rejected.
@@ -204,7 +209,7 @@ This project is submitted for **Level 5 — Full Moon** of the Midnight "New Moo
 | **User feedback (Google Sheet)** | ✅ | [Google Sheet](https://docs.google.com/spreadsheets/d/1fTRAkRNFGVOCrIaur0oGJCcZfjsZuolwyx4hU3ixNEg/edit?usp=sharing) |
 | **Feedback loop documented** | ✅ | [docs/FEEDBACK.md](docs/FEEDBACK.md) |
 | **Updated documentation** | ✅ | [docs/](docs/) — 6 documents |
-| **20+ meaningful commits** | ✅ | 70+ commits |
+| **20+ meaningful commits** | ✅ | 75+ commits |
 
 ### Documentation
 

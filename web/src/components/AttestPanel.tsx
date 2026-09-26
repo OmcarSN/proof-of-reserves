@@ -333,13 +333,13 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
           </div>
 
           {provingStep >= 4 ? (
-            <div style={{ marginTop: 'var(--sp-4)', padding: '12px 16px', background: '#DCEAC9', borderRadius: 10, border: '2px solid #0F2C23', fontSize: '13px', color: '#0F2C23', textAlign: 'center', lineHeight: 1.6 }}>
+            <div className="proving-wallet-prompt">
               ✨ <strong>ZK PROOF READY! 1AM Wallet is waiting for your signature.</strong>
               <br />
               Please check your 1AM Wallet prompt or click the 1AM extension icon to click <strong>"Approve"</strong>.
             </div>
           ) : (
-            <div style={{ marginTop: 'var(--sp-4)', padding: '10px 16px', background: 'rgba(220, 234, 201, 0.45)', borderRadius: 10, border: '1px solid #C5D7B2', fontSize: '12px', color: '#0F2C23', textAlign: 'center', lineHeight: 1.5 }}>
+            <div className="proving-wait-notice">
               ⏳ <strong>Proof server is crunching the ZK cryptographic proof (~15–20 seconds).</strong>
               <br />
               Please keep this tab in focus. <strong>Your 1AM Wallet prompt will appear automatically</strong> as soon as the proof finishes!
@@ -681,12 +681,12 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
             )}
 
             {isPastingPublicKey && (
-              <div style={{ marginTop: 10, padding: '10px 12px', background: '#FEF3C7', border: '1px solid #F59E0B', borderRadius: 8, fontSize: '12px', color: '#92400E', lineHeight: 1.45 }}>
-                <strong style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="alert-warning-box">
+                <strong className="alert-warning-header">
                   <span>⚠️</span> Custodian Identity is a Public Key, Not the Secret!
                 </strong>
-                <p style={{ margin: '4px 0 8px' }}>
-                  The <code style={{ wordBreak: 'break-all' }}>ac9353...08b6</code> value on the Status tab is the vault&apos;s public identifier. To publish an attestation, the contract requires the private <strong>Custodian Secret</strong>.
+                <p className="alert-warning-body">
+                  The <code className="alert-warning-code">ac9353...08b6</code> value on the Status tab is the vault&apos;s public identifier. To publish an attestation, the contract requires the private <strong>Custodian Secret</strong>.
                 </p>
                 <button
                   type="button"
@@ -697,7 +697,6 @@ export function AttestPanel({ wallet, onConnect, addToast, onNavigateToStatus }:
                     setPassphrase('');
                     addToast('Swapped to correct deployed custodian secret', 'success');
                   }}
-                  style={{ fontSize: '11px', padding: '4px 10px' }}
                 >
                   Click Here to Use Correct Deployed Secret
                 </button>

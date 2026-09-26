@@ -3756,6 +3756,92 @@ html {
 }
 
 /* ═══════════════════════════════════════════════════════════════════════
+   COMPONENT-SPECIFIC POLISH — Extracted Inline Styles
+   ═══════════════════════════════════════════════════════════════════════ */
+
+/* ── Proving overlay prompt boxes ─────────────────────────────────── */
+.proving-wallet-prompt {
+  margin-top: var(--sp-4);
+  padding: 14px 18px;
+  background: linear-gradient(135deg, #DCEAC9 0%, #d0e4b8 100%);
+  border-radius: var(--radius-md);
+  border: 2px solid var(--color-accent);
+  font-size: var(--text-sm);
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.6;
+  animation: fadeInUp 0.3s ease-out;
+  box-shadow: 0 2px 12px rgba(15, 44, 35, 0.1);
+}
+
+.proving-wait-notice {
+  margin-top: var(--sp-4);
+  padding: 12px 18px;
+  background: rgba(220, 234, 201, 0.45);
+  backdrop-filter: blur(4px);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-xs);
+  color: var(--color-text);
+  text-align: center;
+  line-height: 1.5;
+  animation: fadeIn 0.3s ease-out;
+}
+
+/* ── Warning alert box (amber) ────────────────────────────────────── */
+.alert-warning-box {
+  margin-top: 10px;
+  padding: 12px 14px;
+  background: var(--color-warning-bg);
+  border: 1px solid #F59E0B;
+  border-radius: var(--radius-md);
+  font-size: var(--text-xs);
+  color: #92400E;
+  line-height: 1.45;
+  animation: fadeInUp 0.2s ease-out;
+}
+
+.alert-warning-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+}
+
+.alert-warning-body {
+  margin: 6px 0 10px;
+}
+
+.alert-warning-code {
+  word-break: break-all;
+  background: rgba(245, 158, 11, 0.12);
+  padding: 1px 4px;
+  border-radius: 3px;
+  font-family: var(--font-mono);
+  font-size: 0.85em;
+}
+
+/* ── Nav tab active indicator glow ────────────────────────────────── */
+.nav-tab.is-active::after {
+  box-shadow: 0 2px 8px rgba(47, 122, 79, 0.15);
+}
+
+/* ── Header logo hover effect ─────────────────────────────────────── */
+.header-logo-mark {
+  transition: transform 0.3s var(--ease);
+}
+
+.header-logo-mark:hover {
+  transform: scale(1.05);
+}
+
+/* ── Connected wallet address styling ─────────────────────────────── */
+.wallet-address-text {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+/* ═══════════════════════════════════════════════════════════════════════
    ADDITIONAL VISUAL POLISH — v2
    ═══════════════════════════════════════════════════════════════════════ */
 
